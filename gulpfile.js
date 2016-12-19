@@ -9,7 +9,6 @@ const inferno = require("babel-plugin-inferno");
 const bs = require("browser-sync");
 const chaf = require("connect-history-api-fallback");
 const precss = require("precss");
-const stylelint = require("stylelint");
 const cssnext = require("postcss-cssnext");
 
 /**
@@ -29,7 +28,9 @@ function createBundler() {
     })
     .plugin(watchify)
     .plugin(inferno)
-    .transform(babelify, { presets: ["latest"] })
+    .transform(babelify, {
+      presets: ["latest"]
+    })
     .add("src/scripts/madrid/index.js");
   bundler.on("update", bundle);
   return bundler;
@@ -73,8 +74,9 @@ gulp.task("styles", () => {
     .pipe(plugins.plumber())
     .pipe(plugins.postcss([
       precss(),
-      cssnext(),
-      stylelint()
+      cssnext({
+        browsers: ['last 1 version']
+      })
     ]))
     .pipe(gulp.dest("dist"));
   if (bs.active) {
