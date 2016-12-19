@@ -26,13 +26,12 @@ function createBundler() {
   const bundler = browserify({
       debug: !isProduction(),
       paths: ["src/scripts"]
-    }).plugin(watchify)
-    .plugin(inferno)
-    .transform(babelify, {
-      presets: ["latest"]
     })
+    .plugin(watchify)
+    .plugin(inferno)
+    .transform(babelify, { presets: ["latest"] })
     .add("src/scripts/madrid/index.js");
-
+  bundler.on("update", bundle);
   return bundler;
 }
 
@@ -50,7 +49,9 @@ function bundle() {
     .bundle()
     .on("error", (err) => {
       plugins.util.log(err.message);
-      bs.notify("browserify error!");
+      if (bs.active) {
+        bs.notify("browserify error!");
+      }
     })
     .pipe(exorcist("index.js.map"))
     .pipe(source("index.js"))
@@ -68,14 +69,13 @@ gulp.task("scripts", () => {
 });
 
 gulp.task("styles", () => {
-  const processors = [
-    precss(),
-    cssnext(),
-    stylelint()
-  ];
   const stream = gulp.src("src/styles/index.css")
     .pipe(plugins.plumber())
-    .pipe(plugins.postcss(processors))
+    .pipe(plugins.postcss([
+      precss(),
+      cssnext(),
+      stylelint()
+    ]))
     .pipe(gulp.dest("dist"));
   if (bs.active) {
     stream.pipe(bs.stream());
@@ -96,3 +96,5 @@ gulp.task("bs", ["watch"], () => {
     }
   });
 });
+
+gulp.task("default", ["bs"]);
