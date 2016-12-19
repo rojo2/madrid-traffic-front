@@ -19,7 +19,7 @@ function isProduction() {
 }
 
 /**
- * Crea el bundler  (browserify + watchify)
+ * Crea el bundler  (browserify + watchify).
  */
 function createBundler() {
   const bundler = browserify({
@@ -54,7 +54,7 @@ function bundle() {
         bs.notify("browserify error!");
       }
     })
-    .pipe(exorcist("index.js.map"))
+    .pipe(exorcist("dist/index.js.map"))
     .pipe(source("index.js"))
     .pipe(gulp.dest("dist"));
   if (bs.active) {
@@ -65,6 +65,9 @@ function bundle() {
   return stream;
 }
 
+/**
+ * Genera las plantillas.
+ */
 gulp.task("templates", () => {
   const stream = gulp.src("src/templates/index.pug")
     .pipe(plugins.plumber())
@@ -79,10 +82,16 @@ gulp.task("templates", () => {
   }
 });
 
+/**
+ * Genera los scripts.
+ */
 gulp.task("scripts", () => {
   return bundle();
 });
 
+/**
+ * Genera los estilos.
+ */
 gulp.task("styles", () => {
   const stream = gulp.src("src/styles/index.css")
     .pipe(plugins.plumber())
@@ -98,12 +107,22 @@ gulp.task("styles", () => {
   }
 });
 
-gulp.task("build", ["scripts", "styles"]);
+/**
+ * Construye todo el proyecto.
+ */
+gulp.task("build", ["scripts", "styles", "templates"]);
 
+/**
+ * Observa los archivos para regenerarlos.
+ */
 gulp.task("watch", ["build"], () => {
   gulp.watch("src/styles/**/*.css", ["styles"]);
+  gulp.watch("src/templates/**/*.pug", ["templates"]);
 });
 
+/**
+ * Browser Sync.
+ */
 gulp.task("bs", ["watch"], () => {
   bs.init({
     server: {
@@ -113,4 +132,7 @@ gulp.task("bs", ["watch"], () => {
   });
 });
 
+/**
+ * Tarea por defecto.
+ */
 gulp.task("default", ["bs"]);

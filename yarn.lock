@@ -412,11 +412,11 @@ babel-plugin-check-es2015-constants@^6.3.13:
   dependencies:
     babel-runtime "^6.0.0"
 
-babel-plugin-inferno@^1.0.0-legacy:
-  version "1.0.0-legacy"
-  resolved "https://registry.yarnpkg.com/babel-plugin-inferno/-/babel-plugin-inferno-1.0.0-legacy.tgz#9130153bec75e0eb542111e6e74a18df7129a5c9"
+babel-plugin-inferno@beta15:
+  version "1.3.0-beta15"
+  resolved "https://registry.yarnpkg.com/babel-plugin-inferno/-/babel-plugin-inferno-1.3.0-beta15.tgz#090fbf5ad46e4ab299fb6d032a0390729c67d45d"
   dependencies:
-    babel-plugin-syntax-jsx "^6.8.0"
+    babel-plugin-syntax-jsx "^6.18.0"
 
 babel-plugin-syntax-async-functions@^6.8.0:
   version "6.13.0"
@@ -426,7 +426,7 @@ babel-plugin-syntax-exponentiation-operator@^6.8.0:
   version "6.13.0"
   resolved "https://registry.yarnpkg.com/babel-plugin-syntax-exponentiation-operator/-/babel-plugin-syntax-exponentiation-operator-6.13.0.tgz#9ee7e8337290da95288201a6a57f4170317830de"
 
-babel-plugin-syntax-jsx@^6.8.0:
+babel-plugin-syntax-jsx@^6.18.0:
   version "6.18.0"
   resolved "https://registry.yarnpkg.com/babel-plugin-syntax-jsx/-/babel-plugin-syntax-jsx-6.18.0.tgz#0af32a9a6e13ca7a3fd5069e62d7b0f58d0d8946"
 
@@ -2405,21 +2405,29 @@ indexof@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/indexof/-/indexof-0.0.1.tgz#82dc336d232b9062179d05ab3293a66059fd435d"
 
-inferno-component@^0.7.27:
-  version "0.7.27"
-  resolved "https://registry.yarnpkg.com/inferno-component/-/inferno-component-0.7.27.tgz#9838675e8489cae0c0a7cf1d5815571b29f6e1fa"
+inferno-component@1.0.0-beta36, inferno-component@beta36:
+  version "1.0.0-beta36"
+  resolved "https://registry.yarnpkg.com/inferno-component/-/inferno-component-1.0.0-beta36.tgz#1eadc1adc962e6e3a0df6dd6c3441d7710a19abd"
   dependencies:
-    inferno "^0.7.27"
+    inferno "1.0.0-beta36"
 
-inferno-router@^0.7.27:
-  version "0.7.27"
-  resolved "https://registry.yarnpkg.com/inferno-router/-/inferno-router-0.7.27.tgz#1015820b1d06a0043a584a2dd80d71bcc266d253"
+inferno-create-element@1.0.0-beta36:
+  version "1.0.0-beta36"
+  resolved "https://registry.yarnpkg.com/inferno-create-element/-/inferno-create-element-1.0.0-beta36.tgz#d48d39db38fe1b8b0d69851836a3419295af337a"
   dependencies:
-    inferno "^0.7.27"
+    inferno "1.0.0-beta36"
 
-inferno@^0.7.27:
-  version "0.7.27"
-  resolved "https://registry.yarnpkg.com/inferno/-/inferno-0.7.27.tgz#3c3b04f85a072cb8e7165ba5c327252f8c15d5bb"
+inferno-router@beta36:
+  version "1.0.0-beta36"
+  resolved "https://registry.yarnpkg.com/inferno-router/-/inferno-router-1.0.0-beta36.tgz#6c5feee222c6549de0cb0de04fd1a26d3e1e62c6"
+  dependencies:
+    inferno "1.0.0-beta36"
+    inferno-component "1.0.0-beta36"
+    inferno-create-element "1.0.0-beta36"
+
+inferno@1.0.0-beta36, inferno@beta36:
+  version "1.0.0-beta36"
+  resolved "https://registry.yarnpkg.com/inferno/-/inferno-1.0.0-beta36.tgz#a1c51e9e6d8ac92df29d9f24221fda0b94d21bc6"
 
 inflight@^1.0.4:
   version "1.0.6"
