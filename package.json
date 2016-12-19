@@ -4,12 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "gulp"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "autoprefixer": "^6.5.4",
     "babel-plugin-inferno": "^1.0.0-legacy",
     "babel-preset-latest": "^6.16.0",
     "babelify": "^7.3.0",
@@ -21,6 +23,9 @@
     "gulp-plumber": "^1.1.0",
     "gulp-postcss": "^6.2.0",
     "gulp-util": "^3.0.7",
+    "postcss-cssnext": "^2.9.0",
+    "precss": "^1.4.0",
+    "stylelint": "^7.7.0",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.8.0"

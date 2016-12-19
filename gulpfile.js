@@ -7,30 +7,44 @@ const exorcist = require("exorcist");
 const inferno = require("babel-preset-inferno");
 const bs = require("browser-sync");
 const chaf = require("connect-history-api-fallback");
+const autoprefixer = require("autoprefixer");
+const precss = require("precss");
+const stylelint = require("stylelint");
+const cssnext = require("postcss-cssnext");
 
+/**
+ * Devuelve si estamos en producción o no.
+ */
 function isProduction() {
 	return process.env.NODE_ENV === "production";
 }
 
+/**
+ * Crea el bundler  (browserify + watchify)
+ */
 function createBundler() {
 	const bundler = browserify({
 		debug: !isProduction(),
 		paths: ["src/scripts"]
-	}).add("src/scripts/madrid/index.js")
+	}).plugin(watchify)
+    .plugin(inferno)
 		.transform(babelify, { presets: ["latest"] })
-		.plugin(watchify)
-		.plugin(inferno);
+    .add("src/scripts/madrid/index.js");
 
 	return bundler;
 }
 
+// Bundler
 let bundler = null;
 
+/**
+ * Compila el código javascript.
+ */
 function bundle() {
 	if (!bundler) {
 		bundler = createBundler();
 	}
-	return bundler
+	const stream = bundler
 		.bundle()
 		.on("error", (err) => {
 			plugins.util.log(err.message);
@@ -38,8 +52,11 @@ function bundle() {
 		})
 		.pipe(exorcist("index.js.map"))
 		.pipe(source("index.js"))
-		.pipe(gulp.dest("dist"))
-		.pipe(bs.stream({ once: true }));
+		.pipe(gulp.dest("dist"));
+	if (bs.active) {
+		stream.pipe(bs.stream({ once: true }));
+	}
+	return stream;
 }
 
 gulp.task("scripts", () => {
@@ -49,12 +66,17 @@ gulp.task("scripts", () => {
 gulp.task("styles", () => {
 	const processors = [
 		autoprefixer({browsers: ['last 1 version']}),
-		cssnano()
+		precss(),
+		cssnext(),
+		stylelint()
 	];
-	gulp.src("src/styles/index.css")
+	const stream = gulp.src("src/styles/index.css")
 		.pipe(plugins.plumber());
 		.pipe(postcss(processors))
 		.pipe(gulp.dest("dist"));
+	if (bs.active) {
+		stream.pipe(bs.stream());
+	}
 });
 
 gulp.task("build", ["scripts","styles"]);
