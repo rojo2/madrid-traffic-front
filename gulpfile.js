@@ -65,6 +65,20 @@ function bundle() {
   return stream;
 }
 
+gulp.task("templates", () => {
+  const stream = gulp.src("src/templates/index.pug")
+    .pipe(plugins.plumber())
+    .pipe(plugins.pug({
+      locals: {
+        title: "Madrid Traffic"
+      }
+    }))
+    .pipe(gulp.dest("dist"));
+  if (bs.active) {
+    stream.pipe(bs.stream());
+  }
+});
+
 gulp.task("scripts", () => {
   return bundle();
 });
