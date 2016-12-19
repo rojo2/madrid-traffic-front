@@ -4,10 +4,10 @@ const browserify = require("browserify");
 const babelify = require("babelify");
 const watchify = require("watchify");
 const exorcist = require("exorcist");
+const source = require("vinyl-source-stream");
 const inferno = require("babel-plugin-inferno");
 const bs = require("browser-sync");
 const chaf = require("connect-history-api-fallback");
-const autoprefixer = require("autoprefixer");
 const precss = require("precss");
 const stylelint = require("stylelint");
 const cssnext = require("postcss-cssnext");
@@ -69,16 +69,13 @@ gulp.task("scripts", () => {
 
 gulp.task("styles", () => {
   const processors = [
-    autoprefixer({
-      browsers: ['last 1 version']
-    }),
     precss(),
     cssnext(),
     stylelint()
   ];
   const stream = gulp.src("src/styles/index.css")
     .pipe(plugins.plumber())
-    .pipe(postcss(processors))
+    .pipe(plugins.postcss(processors))
     .pipe(gulp.dest("dist"));
   if (bs.active) {
     stream.pipe(bs.stream());
@@ -99,5 +96,3 @@ gulp.task("bs", ["watch"], () => {
     }
   });
 });
-
-gulp.task("default", ["bs"]);
