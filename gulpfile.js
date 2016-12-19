@@ -9,6 +9,7 @@ const inferno = require("babel-plugin-inferno");
 const bs = require("browser-sync");
 const chaf = require("connect-history-api-fallback");
 const precss = require("precss");
+const cssnano = require("cssnano");
 const cssnext = require("postcss-cssnext");
 
 /**
@@ -99,7 +100,8 @@ gulp.task("styles", () => {
       precss(),
       cssnext({
         browsers: ['last 1 version']
-      })
+      }),
+      cssnano()
     ]))
     .pipe(gulp.dest("dist"));
   if (bs.active) {

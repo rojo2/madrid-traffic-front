@@ -17,6 +17,7 @@
     "babelify": "^7.3.0",
     "browser-sync": "^2.18.5",
     "browserify": "^13.1.1",
+    "cssnano": "^3.9.1",
     "exorcist": "^0.4.0",
     "gulp": "^3.9.1",
     "gulp-load-plugins": "^1.4.0",

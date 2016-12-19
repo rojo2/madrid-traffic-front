@@ -1,0 +1,16 @@
+.Detail
+{
+    position: absolute;
+    top: 0rem;
+    right: 0rem;
+
+    padding: 2rem;
+
+    background-color: white;
+    @extend shadow--layer;
+}
+
+.Detail__section
+{
+    padding: 1rem 0;
+}

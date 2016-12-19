@@ -1,0 +1,12 @@
+.Timeline
+{
+    position: fixed;
+    right: 0rem;
+    bottom: 0rem;
+    left: 0rem;
+
+    padding: 2rem;
+
+    background-color: white;
+    @extend shadow--layer;
+}
