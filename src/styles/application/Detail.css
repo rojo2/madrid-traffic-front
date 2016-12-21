@@ -1,16 +1,15 @@
-.Detail
-{
-    position: absolute;
-    top: 0rem;
-    right: 0rem;
+.Detail {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
 
-    padding: 2rem;
+  width: 24rem;
+  padding: 1rem;
 
-    background-color: white;
-    @extend shadow--layer;
+  background-color: white;
+  @extend shadow--layer;
 }
 
-.Detail__section
-{
-    padding: 1rem 0;
+.Detail__section {
+  padding: 1rem 0;
 }

@@ -11,10 +11,20 @@ function Application(props) {
   );
 }
 
-function Map(props) {
-  return (
-    <div className="Map"></div>
-  );
+class Map extends Component {
+  createGoogleMap(mapElement) {
+    const map = new google.maps.Map(mapElement, {
+      center: {lat: 40.4308087, lng: -3.6755942},
+      mapTypeControl: false,
+      scrollwheel: true,
+      streetViewControl: false,
+      zoom: 13
+    });
+  }
+
+  render() {
+    return (<div className="Map" id="map" ref={this.createGoogleMap.bind(this)}></div>);
+  }
 }
 
 function Detail(props) {
@@ -24,14 +34,18 @@ function Detail(props) {
             <div className="Detail__mainInfo">
                 <div className="Detail__address">Av. Buenos Aires - Arroyo del Olivar-Av. Palomeras</div>
                 <div className="Detail__streetView">
-                    <img src="http://placekitten.com/1024/768"/>
+                    <img src="http://placekitten.com/1200/600"/>
                 </div>
             </div>
         </section>
         <section className="Detail__section">
             <div className="Detail__dataField">
-                <label>Nº coches</label>
-                <div className="Detail__dataFieldValue">456</div>
+                <label>Intensidad</label>
+                <div className="Detail__dataFieldValue">460</div>
+            </div>
+            <div className="Detail__dataField">
+                <label>Ocupación</label>
+                <div className="Detail__dataFieldValue">3</div>
             </div>
         </section>
         <section className="Detail__section">
@@ -44,7 +58,18 @@ function Detail(props) {
 
 function Timeline(props) {
   return (
-    <div className="Timeline">Timeline</div>
+    <div className="Timeline">
+        <nav className="Timeline__range">
+            <a className="Timeline__rangeOption" href="#">Día</a>
+            <a className="Timeline__rangeOption" href="#">Semana</a>
+            <a className="Timeline__rangeOption" href="#">Mes</a>
+        </nav>
+        <div className="Timeline__slider">
+            <div className="Timeline__base">
+                <div className="Timeline__handler"></div>
+            </div>
+        </div>
+    </div>
   );
 }
 

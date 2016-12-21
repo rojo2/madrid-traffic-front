@@ -1,29 +1,32 @@
-html
-{
-    width: 100vw;
-    height: 100vh;
-    margin: 0;
-    padding: 0;
+$Color--darkGrey: #404040;
+$Color--lightGrey: #d2d2d2;
+
+html {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 
-body
-{
-    font-family: sans-serif;
+body {
+  font-family: sans-serif;
 
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+img {
+  width: 100%;
+  height: auto;
 }
 
 #Application,
-.Page
-{
-    width: 100%;
-    height: 100%;
+.Page {
+  width: 100%;
+  height: 100%;
 }
-
-@define-extend shadow--layer
-{
-    box-shadow: 0 .25rem 1rem rgba(0,0,0,.2);
+@define-extend shadow--layer {
+  box-shadow: 0 0.25rem 1rem rgba(0,0,0,.2);
 }

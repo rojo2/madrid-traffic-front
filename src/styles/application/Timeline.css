@@ -1,12 +1,48 @@
-.Timeline
-{
-    position: fixed;
-    right: 0rem;
-    bottom: 0rem;
-    left: 0rem;
+.Timeline {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
 
-    padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
-    background-color: white;
-    @extend shadow--layer;
+  padding: 2rem;
+
+  background-color: white;
+  @extend shadow--layer;
+}
+
+.Timeline__slider {
+  width: 100%;
+  flex: 1 1 5rem;
+  display: flex;
+  align-items: center;
+}
+
+.Timeline__base {
+  width: 100%;
+  height: 0.125rem;
+  border-radius: 0.5rem;
+  background-color: $Color--lightGrey;
+}
+
+.Timeline__range {
+  display: flex;
+}
+
+.Timeline__rangeOption {
+  flex: 1 0 33%;
+  text-align: center;
+  text-decoration: none;
+  color: $Color--darkGrey;
+  font-weight: bold;
+  padding: 1rem;
+  border: 1px solid $Color--lightGrey;
+  border-right: none;
+}
+
+.Timeline__rangeOption:last-child {
+  border-right: 1px solid $Color--lightGrey;
 }
