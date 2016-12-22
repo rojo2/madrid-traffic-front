@@ -1,4 +1,4 @@
-import fetch from "madrid/http";
+import fetch, { getUrl } from "madrid/http";
 import qs from "querystring";
 
 const API = "http://172.25.0.3:3002";
@@ -24,7 +24,12 @@ const measurePointLocation = {
   }
 };
 
+function url(u,q) {
+  return getUrl(`${API}/${u}`,q);
+}
+
 export default {
+  url,
   measurePoint,
   measurePointLocation
 };

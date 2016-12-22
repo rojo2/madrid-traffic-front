@@ -113,7 +113,7 @@ class Detail extends Component {
         this.view.setPosition(new google.maps.LatLng(lat,lng));
         this.view.setVisible(true);
 
-        API.measurePoint.find({ id: })
+        //API.measurePoint.find({ id: })
       }
     }
   }
@@ -124,32 +124,40 @@ class Detail extends Component {
 
   render() {
     const {measurePoint} = this.props;
+    const href = API.url("measure-point");
     return (
       <div className="Detail">
-          <section className="Detail__section">
-              <div className="Detail__mainInfo">
-                  <div className="Detail__address">
-                    {measurePoint && measurePoint.description}
-                  </div>
-                  <div className="Detail__streetView" ref={this.handleGoogleStreetView}>
-                    <img src="http://placekitten.com/1200/600"/>
-                  </div>
-              </div>
-          </section>
-          <section className="Detail__section">
-              <div className="Detail__dataField">
-                  <label>Intensidad</label>
-                  <div className="Detail__dataFieldValue">460</div>
-              </div>
-              <div className="Detail__dataField">
-                  <label>Ocupación</label>
-                  <div className="Detail__dataFieldValue">3</div>
-              </div>
-          </section>
-          <section className="Detail__section">
-              <div className="Detail__graph">Graph</div>
-              <div className="Detail__graph">Graph</div>
-          </section>
+        <section className="Detail__section">
+          <div className="Detail__mainInfo">
+            <div className="Detail__address">
+              {measurePoint && measurePoint.description}
+            </div>
+            <div className="Detail__streetView" ref={this.handleGoogleStreetView}>
+              <img src="http://placekitten.com/1200/600"/>
+            </div>
+          </div>
+        </section>
+        <section className="Detail__section">
+          <div className="Detail__dataField">
+            <label>Intensidad</label>
+            <div className="Detail__dataFieldValue">
+              460
+            </div>
+          </div>
+          <div className="Detail__dataField">
+            <label>Ocupación</label>
+            <div className="Detail__dataFieldValue">
+              3
+            </div>
+          </div>
+        </section>
+        <section className="Detail__section">
+          <div className="Detail__graph">Graph</div>
+          <div className="Detail__graph">Graph</div>
+        </section>
+        <section className="Detail__section">
+          <a download href={href}>Descargar datos</a>
+        </section>
       </div>
     );
   }

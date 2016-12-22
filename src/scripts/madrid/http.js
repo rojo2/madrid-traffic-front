@@ -1,6 +1,6 @@
 import qs from "querystring";
 
-function getUrl(url,q) {
+export function getUrl(url,q) {
   if (q) {
     if (url.indexOf("?") < 0) {
       return `${url}?${qs.stringify(q)}`;
