@@ -74,12 +74,89 @@ class Map extends Component {
   }
 
   handleGoogleMaps(mapElement) {
+
+    const mapStyles = [
+    {
+        "featureType": "landscape.natural",
+        "elementType": "geometry.fill",
+        "stylers": [
+            {
+                "visibility": "on"
+            },
+            {
+                "color": "#e0efef"
+            }
+        ]
+    },
+    {
+        "featureType": "poi",
+        "elementType": "geometry.fill",
+        "stylers": [
+            {
+                "visibility": "on"
+            },
+            {
+                "hue": "#1900ff"
+            },
+            {
+                "color": "#c0e8e8"
+            }
+        ]
+    },
+    {
+        "featureType": "road",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "lightness": 100
+            },
+            {
+                "visibility": "simplified"
+            }
+        ]
+    },
+    {
+        "featureType": "road",
+        "elementType": "labels",
+        "stylers": [
+            {
+                "visibility": "off"
+            }
+        ]
+    },
+    {
+        "featureType": "transit.line",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "visibility": "on"
+            },
+            {
+                "lightness": 700
+            }
+        ]
+    },
+    {
+        "featureType": "water",
+        "elementType": "all",
+        "stylers": [
+            {
+                "color": "#7dcdcd"
+            }
+        ]
+    }
+];
+
+    const styledMap = new google.maps.StyledMapType(mapStyles,
+        {name:"Styled Map"});
+
     const map = this.map = new google.maps.Map(mapElement, {
       center: {lat: 40.4308087, lng: -3.6755942},
       mapTypeControl: false,
       scrollwheel: true,
       streetViewControl: false,
-      zoom: 13
+      zoom: 13,
+      styles: mapStyles
     });
 
     API.measurePointLocation.find().then((measurePoints) => {
@@ -94,6 +171,7 @@ class Map extends Component {
             position: new google.maps.LatLng(lat,lng),
             map: map,
             title: measurePointInfo.description,
+            scale: 0.5,
             icon: icon
           });
           marker.addListener("click", this.handleDetail.bind(this,marker,measurePointInfo));
