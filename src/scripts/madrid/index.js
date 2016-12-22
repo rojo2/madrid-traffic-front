@@ -281,7 +281,7 @@ class Detail extends Component {
         </section>
         <section className="Detail__section">
           <div className="Detail__graph">
-            <canvas ref={this.handleGraph}></canvas>
+            <canvas class="Detail__graphContainer" ref={this.handleGraph}></canvas>
           </div>
         </section>
         <section className="Detail__footer">

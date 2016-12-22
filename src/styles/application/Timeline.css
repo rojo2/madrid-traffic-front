@@ -10,7 +10,7 @@
 
   padding: 1rem 2rem;
 
-  background-color: white;
+  background-color: $Color--timelineBackground;
   @extend shadow--layer;
   pointer-events: all;
 }
@@ -40,10 +40,10 @@
   color: $Color--darkGrey;
   font-weight: bold;
   padding: 0.5rem 1rem;
-  border: 1px solid $Color--lightGrey;
+  border: 1px solid $Color--timelineBorder;
   border-right: none;
 }
 
 .Timeline__rangeOption:last-child {
-  border-right: 1px solid $Color--lightGrey;
+  border-right: 1px solid $Color--timelineBorder;
 }
