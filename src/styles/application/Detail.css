@@ -3,11 +3,12 @@
   top: 0;
   right: 0;
 
-  width: 24rem;
+  width: 32rem;
   padding: 1rem;
 
-  background-color: hsla(40, 0%, 100%, 0.8);
+  background-color: hsla(40, 0%, 100%, 0.85);
   @extend shadow--layer;
+  transition: all 0.2s ease-in-out;
 }
 
 .Detail__section {
@@ -16,6 +17,7 @@
 
 .Detail.is--hidden {
   transform: translateX(100%);
+  transition: all 0.4s ease-in-out;
 }
 
 .Detail__close {
@@ -27,8 +29,12 @@
   color: $Color--darkGrey;
 }
 
+.Detail__streetView {
+  height: 12rem;
+}
+
 .Detail__address {
   @extend font-style--headline;
-  font-size: 1.25rem;
-  margin: 0.5rem 0;
+  font-size: 1.125rem;
+  margin-bottom: 1rem;
 }

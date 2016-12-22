@@ -143,7 +143,7 @@ class Detail extends Component {
               {measurePoint && measurePoint.description}
             </div>
             <div className="Detail__streetView" ref={this.handleGoogleStreetView}>
-              <img src="http://placekitten.com/1200/600"/>
+              <img src=""/>
             </div>
           </div>
         </section>
