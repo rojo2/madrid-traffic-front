@@ -330,7 +330,35 @@ function Timeline(props) {
             <a className="Timeline__rangeOption" href="#">Semana</a>
             <a className="Timeline__rangeOption" href="#">Mes</a>
         </nav>
+        <div className="Timeline__legend">
+            <div className="Timeline__legendValue">7:00</div>
+            <div className="Timeline__legendValue">9:00</div>
+            <div className="Timeline__legendValue">11:00</div>
+            <div className="Timeline__legendValue">13:00</div>
+            <div className="Timeline__legendValue">15:00</div>
+            <div className="Timeline__legendValue">17:00</div>
+            <div className="Timeline__legendValue">19:00</div>
+            <div className="Timeline__legendValue">21:00</div>
+            <div className="Timeline__legendValue">23:00</div>
+            <div className="Timeline__legendValue">1:00</div>
+            <div className="Timeline__legendValue">3:00</div>
+            <div className="Timeline__legendValue">5:00</div>
+        </div>
         <div className="Timeline__slider">
+            <div className="Timeline__marks">
+                <div className="Timeline__mark"></div>
+                <div className="Timeline__mark"></div>
+                <div className="Timeline__mark"></div>
+                <div className="Timeline__mark"></div>
+                <div className="Timeline__mark"></div>
+                <div className="Timeline__mark"></div>
+                <div className="Timeline__mark"></div>
+                <div className="Timeline__mark"></div>
+                <div className="Timeline__mark"></div>
+                <div className="Timeline__mark"></div>
+                <div className="Timeline__mark"></div>
+                <div className="Timeline__mark"></div>
+            </div>
             <div className="Timeline__base">
                 <div className="Timeline__handler"></div>
             </div>
