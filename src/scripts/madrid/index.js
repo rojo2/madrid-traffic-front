@@ -6,18 +6,27 @@ import API from "madrid/API";
 class Application extends Component {
   constructor(props) {
     super(props);
-    this.handleDetail = this.handleDetail.bind(this);
+    this.handleDetailOpen = this.handleDetailOpen.bind(this);
+    this.handleDetailClose = this.handleDetailClose.bind(this);
   }
 
-  handleDetail(measurePoint) {
-    this.setState({ measurePoint });
+  handleDetailOpen(measurePoint) {
+    this.setState({
+      measurePoint
+    });
+  }
+
+  handleDetailClose() {
+    this.setState({
+      measurePoint: null
+    });
   }
 
   render() {
     return (
       <div className="Page">
-        <Map onDetail={this.handleDetail} />
-        <Detail measurePoint={this.state.measurePoint} />
+        <Map onDetail={this.handleDetailOpen} measurePoint={this.state.measurePoint} />
+        <Detail onClose={this.handleDetailClose} measurePoint={this.state.measurePoint} />
         <Timeline />
       </div>
     );
@@ -30,6 +39,15 @@ class Map extends Component {
     this.map = null;
     this.selectedMarker = null;
     this.handleGoogleMaps = this.handleGoogleMaps.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.measurePoint === null) {
+      if (this.selectedMarker !== null) {
+        this.selectedMarker.setAnimation(null);
+        this.selectedMarker = null;
+      }
+    }
   }
 
   handleDetail(marker,measurePoint) {
@@ -87,6 +105,7 @@ class Detail extends Component {
     this.handleGoogleStreetView = this.handleGoogleStreetView.bind(this);
     this.handleIntensityGraph = this.handleIntensityGraph.bind(this);
     this.handleLoadGraph = this.handleLoadGraph.bind(this);
+    this.handleClose = this.handleClose.bind(this);
   }
 
   handleGoogleStreetView(streetViewElement) {
@@ -129,8 +148,8 @@ class Detail extends Component {
     }
   }
 
-  componentWillUpdate(nextProps,nextState) {
-    if (nextState.data !== this.state.data) {
+  componentDidUpdate(prevProps,prevState) {
+    if (this.state.data !== prevState.data) {
       this.handleGraph(this.intensityGraph, "intensity");
       this.handleGraph(this.loadGraph, "occupancy");
     }
@@ -151,13 +170,14 @@ class Detail extends Component {
       const min = Math.min(...values);
       const cw = Math.floor(canvas.width / values.length);
       context.clearRect(0,0,canvas.width,canvas.height);
+      let cx = canvas.width;
       for (let index = values.length - 1; index >= 0; index--) {
         const current = values[index];
         const px = index / (values.length - 1);
         const py = (current - min) / (max - min);
-        const cx = Math.floor(px * canvas.width);
         const cy = Math.floor(canvas.height - (py * canvas.height));
-        const ch = Math.floor(py * canvas.height);
+        const ch = Math.ceil(py * canvas.height);
+        cx -= cw + 1;
         context.fillStyle = "#f00";
         context.fillRect(cx,cy,cw,ch);
       }
@@ -180,6 +200,11 @@ class Detail extends Component {
     this.loadGraph = canvas;
   }
 
+  handleClose(e) {
+    e.preventDefault();
+    this.props.onClose();
+  }
+
   render() {
     const {measurePoint} = this.props;
     const href = API.url("measure-point");
@@ -188,7 +213,9 @@ class Detail extends Component {
     });
     return (
       <div className={classes}>
-        <a className="Detail__close" href="#">x</a>
+        <a className="Detail__close" href="#" onClick={this.handleClose}>
+          ×
+        </a>
         <section className="Detail__section">
           <div className="Detail__mainInfo">
             <div className="Detail__address">
