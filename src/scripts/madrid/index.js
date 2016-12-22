@@ -159,7 +159,7 @@ class Detail extends Component {
 
   componentDidUpdate(prevProps,prevState) {
     if (this.state.data !== prevState.data) {
-      this.renderGraph(this.graph, ["intensity","occupancy","load"]);
+      this.renderGraph(this.graph, ["intensity","load"]);
     }
   }
 
