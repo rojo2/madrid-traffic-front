@@ -161,6 +161,8 @@ class Detail extends Component {
 
   handleGraph(canvas) {
     this.graph = canvas;
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
   }
 
   handleClose(e) {
@@ -199,7 +201,7 @@ class Detail extends Component {
 
   renderGraph(canvas, fields) {
     const {data} = this.state;
-    const colors = ["#f00","#0f0","#00f"];
+    const colors = ["#ffd700","#228b22","#1e90ff"];
     if (data) {
       const context = canvas.getContext("2d");
       context.clearRect(0,0,canvas.width,canvas.height);
