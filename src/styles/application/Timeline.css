@@ -12,6 +12,7 @@
 
   background-color: white;
   @extend shadow--layer;
+  pointer-events: all;
 }
 
 .Timeline__slider {
