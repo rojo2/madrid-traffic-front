@@ -84,13 +84,7 @@ class Map extends Component {
 
     API.measurePointLocation.find().then((measurePoints) => {
       measurePoints.forEach((measurePoint) => {
-        const icon = {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 8,
-            strokeWeight: 0,
-            fillColor: 'red',
-            fillOpacity: 0.8
-        } ;
+        const icon = new google.maps.MarkerImage("img/spritepoint.png");
         const [lat,lng] = measurePoint.location.coordinates;
         const marker = new google.maps.Marker({
           position: new google.maps.LatLng(lat,lng),

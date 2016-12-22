@@ -122,9 +122,20 @@ gulp.task("fonts", () => {
 });
 
 /**
+ * Mueve las imágenes
+ */
+gulp.task("images", () => {
+    const stream = gulp.src("src/images/*.png")
+      .pipe(gulp.dest("dist/img"));
+    if (bs.active) {
+      stream.pipe(bs.stream());
+    }
+});
+
+/**
  * Construye todo el proyecto.
  */
-gulp.task("build", ["scripts", "styles", "templates", "fonts"]);
+gulp.task("build", ["scripts", "styles", "templates", "fonts", "images"]);
 
 /**
  * Observa los archivos para regenerarlos.
