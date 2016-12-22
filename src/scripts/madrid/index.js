@@ -159,6 +159,15 @@ class Detail extends Component {
     this.view.setVisible(false);
   }
 
+  handleGraph(canvas) {
+    this.graph = canvas;
+  }
+
+  handleClose(e) {
+    e.preventDefault();
+    this.props.onClose();
+  }
+
   renderGraphLine(context,field,color) {
     const {data} = this.state;
     const {canvas} = context;
@@ -202,13 +211,31 @@ class Detail extends Component {
     }
   }
 
-  handleGraph(canvas) {
-    this.graph = canvas;
+  getField(field) {
+    const {data} = this.state;
+    if (data) {
+      const [first] = data.slice(0,1);
+      if ((first.kind === "PUNTOS MEDIDA M-30" && field === "average") || field !== "average") {
+        return first[field];
+      }
+    }
+    return "-";
   }
 
-  handleClose(e) {
-    e.preventDefault();
-    this.props.onClose();
+  getIntensity() {
+    return this.getField("intensity");
+  }
+
+  getLoad() {
+    return this.getField("load");
+  }
+
+  getOccupancy() {
+    return this.getField("occupancy");
+  }
+
+  getAverageVelocity() {
+    return this.getField("average");
   }
 
   render() {
@@ -235,19 +262,19 @@ class Detail extends Component {
         <section className="Detail__stats">
           <div className="Detail__dataField">
             <label className="Detail__dataFieldLabel">Intensidad</label>
-            <div className="Detail__dataFieldValue">460</div>
+            <div className="Detail__dataFieldValue">{this.getIntensity()}</div>
           </div>
           <div className="Detail__dataField">
             <label className="Detail__dataFieldLabel">Carga</label>
-            <div className="Detail__dataFieldValue">3</div>
+            <div className="Detail__dataFieldValue">{this.getLoad()}</div>
           </div>
           <div className="Detail__dataField">
             <label className="Detail__dataFieldLabel">Ocupación</label>
-            <div className="Detail__dataFieldValue">460</div>
+            <div className="Detail__dataFieldValue">{this.getOccupancy()}</div>
           </div>
           <div className="Detail__dataField">
             <label className="Detail__dataFieldLabel">Velocidad media</label>
-            <div className="Detail__dataFieldValue">35km/h</div>
+            <div className="Detail__dataFieldValue">{this.getAverageVelocity()}</div>
           </div>
         </section>
         <section className="Detail__section">
