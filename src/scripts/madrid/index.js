@@ -153,7 +153,7 @@ class Detail extends Component {
 
   componentDidUpdate(prevProps,prevState) {
     if (this.state.data !== prevState.data) {
-      this.renderGraph(this.graph, ["intensity","occupancy","load"]);
+      this.renderGraph(this.graph, ["intensity","load"]);
     }
   }
 
@@ -170,6 +170,33 @@ class Detail extends Component {
   handleClose(e) {
     e.preventDefault();
     this.props.onClose();
+  }
+
+  renderGraphBackground(context) {
+    const {data} = this.state;
+    const {canvas} = context;
+    const cw = Math.floor(canvas.width / data.length);
+    let cx = canvas.width;
+    for (let index = data.length - 1; index >= 0; index--) {
+      context.beginPath();
+      context.moveTo(cx,0);
+      context.lineTo(cx,canvas.height);
+      context.strokeStyle = "#eee";
+      context.stroke();
+      //context.closePath();
+      cx -= cw + 1;
+    }
+
+    const lines = 5;
+    for (let index = 0; index < lines; index++) {
+      const py = index / (lines - 1);
+      const cy = py * canvas.height;
+      context.beginPath();
+      context.moveTo(0,cy);
+      context.lineTo(canvas.width,cy);
+      context.strokeStyle = "#eee";
+      context.stroke();
+    }
   }
 
   renderGraphLine(context,field,color) {
@@ -207,6 +234,7 @@ class Detail extends Component {
     if (data) {
       const context = canvas.getContext("2d");
       context.clearRect(0,0,canvas.width,canvas.height);
+      this.renderGraphBackground(context);
       for (let index = 0; index < fields.length; index++) {
         const color = colors[index];
         const field = fields[index];
