@@ -252,7 +252,7 @@ class Detail extends Component {
             <canvas ref={this.handleLoadGraph}></canvas>
           </div>
         </section>
-        <section className="Detail__section">
+        <section className="Detail__footer">
           <a class="Detail__downloadData" download href={href}>Descargar datos</a>
         </section>
       </div>

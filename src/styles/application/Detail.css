@@ -3,10 +3,10 @@
   top: 0;
   right: 0;
 
-  width: 32rem;
+  width: 28rem;
   padding: 1rem 1.5rem;
 
-  background-color: hsla(40, 0%, 100%, 0.85);
+  background-color: $Color--bg;
   @extend $Shadow--layer;
   transition: all 0.2s ease-in-out;
 }
@@ -18,7 +18,13 @@
 .Detail__stats {
   display: flex;
   flex-wrap: wrap;
+  background-color: #f0f0f0;
+  padding: 0 0.5rem;
+}
+
+.Detail__footer {
   padding: 1rem 0;
+  display: flex;
 }
 
 .Detail.is--hidden {
@@ -47,7 +53,7 @@
 
 .Detail__dataField {
   flex: 0 0 50%;
-  padding: 0 1rem 1rem 0;
+  padding: 1rem;
 }
 
 .Detail__dataFieldLabel {
@@ -59,6 +65,5 @@
 }
 
 .Detail__downloadData {
-  padding: 0.75rem 1.5rem;
-  text;
+  @extend $Button;
 }
