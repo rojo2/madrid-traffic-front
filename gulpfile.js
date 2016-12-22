@@ -110,9 +110,21 @@ gulp.task("styles", () => {
 });
 
 /**
+ * Genera las fuentes.
+ */
+gulp.task("fonts", () => {
+    const stream = gulp.src("src/fonts/*.ttf")
+      .pipe(plugins.ttf2woff())
+      .pipe(gulp.dest("dist/fonts"));
+    if (bs.active) {
+      stream.pipe(bs.stream());
+    }
+});
+
+/**
  * Construye todo el proyecto.
  */
-gulp.task("build", ["scripts", "styles", "templates"]);
+gulp.task("build", ["scripts", "styles", "templates", "fonts"]);
 
 /**
  * Observa los archivos para regenerarlos.
