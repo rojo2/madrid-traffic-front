@@ -17,6 +17,7 @@ $Color--bg: white;
 
 $Color--timelineBackground: hsl(54, 15%, 10%);
 $Color--timelineBorder: hsl(54, 15%, 20%);
+$Color--timelineLegend: hsl(54, 15%, 40%);
 $Color--timelineFore: hsl(54, 15%, 80%);
 $Color--timelineAccent: hsl(54, 80%, 60%);
 

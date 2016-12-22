@@ -17,10 +17,11 @@
 
 .Timeline__slider {
   width: 100%;
-  flex: 1;
+  flex: 1 0 3rem;
   padding: 1.5rem 0;
   display: flex;
   align-items: center;
+  position: relative;
 }
 
 .Timeline__handler {
@@ -47,13 +48,14 @@
 }
 
 .Timeline__rangeOption {
-  flex: 1 0 6rem;
+  flex: 1 1;
   line-height: 1;
   text-decoration: none;
   color: $Color--timelineFore;
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 6rem;
   height: 2.5rem;
   font-size: 0.875rem;
   border: 1px solid $Color--timelineBorder;
@@ -67,4 +69,36 @@
 
 .Timeline__rangeOption:first-child {
   border-radius: 0.5rem 0 0 0.5rem;
+}
+
+.Timeline__legend {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.Timeline__legendValue {
+  font-size: 0.75rem;
+  color: $Color--timelineLegend;
+  text-align: center;
+  padding: 1.5rem 0;
+  margin:
+}
+
+.Timeline__marks {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+}
+
+.Timeline__mark {
+  flex: 0 0 1px;
+  width: 1px;
+  height: 50%;
+  background-color: $Color--timelineBorder;
 }
