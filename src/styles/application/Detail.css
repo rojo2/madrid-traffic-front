@@ -1,8 +1,5 @@
 .Detail {
-  position: absolute;
-  top: 0;
-  right: 0;
-
+  flex: 1;
   width: 28rem;
   padding: 1rem 1.5rem;
 
@@ -28,7 +25,7 @@
 }
 
 .Detail.is--hidden {
-  transform: translateX(100%);
+  transform: translateX(-100%);
   transition: all 0.4s ease-in-out;
 }
 

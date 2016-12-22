@@ -26,8 +26,10 @@ class Application extends Component {
     return (
       <div className="Page">
         <Map onDetail={this.handleDetailOpen} measurePoint={this.state.measurePoint} />
-        <Detail onClose={this.handleDetailClose} measurePoint={this.state.measurePoint} />
-        <Timeline />
+        <div className="Page__UI">
+            <Detail onClose={this.handleDetailClose} measurePoint={this.state.measurePoint} />
+            <Timeline />
+        </div>
       </div>
     );
   }
