@@ -213,7 +213,9 @@ class Detail extends Component {
     const {data} = this.state;
     if (data) {
       const [first] = data.slice(0,1);
-      return first[field];
+      if ((first.kind === "PUNTOS MEDIDA M-30" && field === "average") || field !== "average") {
+        return first[field];
+      }
     }
     return "-";
   }
