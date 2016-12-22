@@ -26,7 +26,7 @@
   width: 100%;
   height: 0.125rem;
   border-radius: 0.5rem;
-  background-color: $Color--lightGrey;
+  background-color: $Color--timelineBorder;
 }
 
 .Timeline__range {
@@ -39,7 +39,7 @@
   text-decoration: none;
   color: $Color--darkGrey;
   font-weight: bold;
-  padding: 0.5rem 1rem;
+  padding: 0.25rem 1rem;
   border: 1px solid $Color--timelineBorder;
   border-right: none;
 }
