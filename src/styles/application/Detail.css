@@ -9,7 +9,7 @@
 }
 
 .Detail__section {
-  padding: 1rem 0;
+  margin: 1.5rem 0;
 }
 
 .Detail__stats {
@@ -17,10 +17,11 @@
   flex-wrap: wrap;
   background-color: #f0f0f0;
   padding: 0 0.5rem;
+  margin: 1.5rem 0;
 }
 
 .Detail__footer {
-  padding: 1rem 0;
+  margin: 1rem 0;
   display: flex;
 }
 
@@ -42,7 +43,7 @@
   background-color: $Color--bg;
   text-decoration: none;
   color: $Color--darkGrey;
-  box-shadow: 0.25rem 0 0.125rem rgba(0, 0, 0, 0.1) inset;
+  box-shadow: 0.25rem 0 0.125rem rgba(0, 0, 0, 0.03) inset;
   transition: all 0.2s ease-in-out;
 }
 
