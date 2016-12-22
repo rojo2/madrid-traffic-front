@@ -34,6 +34,7 @@
   border-radius: 0.125rem;
   box-shadow: 0 0.5rem 0.5rem rgba(0,0,0,0.2);
   cursor: w-resize;
+  animation: anim--timeline 20s linear infinite;
 }
 
 .Timeline__base {
@@ -101,4 +102,13 @@
   width: 1px;
   height: 50%;
   background-color: $Color--timelineBorder;
+}
+@keyframes anim--timeline {
+  from {
+    left: 0;
+  }
+
+  to {
+    left: 100%;
+  }
 }
