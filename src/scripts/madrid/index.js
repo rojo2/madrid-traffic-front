@@ -254,7 +254,7 @@ class Detail extends Component {
         <section className="Detail__section">
           <div className="Detail__mainInfo">
             <div className="Detail__address">
-              {measurePoint && measurePoint.description}
+              {(measurePoint && measurePoint.description) || "-"}
             </div>
             <div className="Detail__streetView" ref={this.handleGoogleStreetView}>
               <img src=""/>
@@ -285,7 +285,7 @@ class Detail extends Component {
           </div>
         </section>
         <section className="Detail__footer">
-          <a class="Detail__downloadData" download href={href}>Descargar datos</a>
+          <a className="Detail__downloadData" download href={href}>Descargar datos</a>
         </section>
       </div>
     );
