@@ -1,3 +1,6 @@
+* {
+  box-sizing: border-box;
+}
 @font-face {
   font-family: Roboto;
   src: url("fonts/Roboto-Bold.woff");
@@ -38,10 +41,11 @@ img {
   width: 100vw;
   height: 100vh;
 }
-@define-extend shadow--layer {
+@define-extend $Shadow--layer {
   box-shadow: 0 0.25rem 1rem rgba(0,0,0,.2);
 }
-@define-extend font-style--headline {
+@define-extend $FontStyle--headline {
   font-family: Roboto;
   font-weight: bold;
 }
+@define-extend $Button {

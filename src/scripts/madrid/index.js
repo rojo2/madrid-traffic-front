@@ -230,18 +230,22 @@ class Detail extends Component {
             </div>
           </div>
         </section>
-        <section className="Detail__section">
+        <section className="Detail__stats">
           <div className="Detail__dataField">
-            <label>Intensidad</label>
-            <div className="Detail__dataFieldValue">
-              460
-            </div>
+            <label className="Detail__dataFieldLabel">Intensidad</label>
+            <div className="Detail__dataFieldValue">460</div>
           </div>
           <div className="Detail__dataField">
-            <label>Ocupación</label>
-            <div className="Detail__dataFieldValue">
-              3
-            </div>
+            <label className="Detail__dataFieldLabel">Carga</label>
+            <div className="Detail__dataFieldValue">3</div>
+          </div>
+          <div className="Detail__dataField">
+            <label className="Detail__dataFieldLabel">Ocupación</label>
+            <div className="Detail__dataFieldValue">460</div>
+          </div>
+          <div className="Detail__dataField">
+            <label className="Detail__dataFieldLabel">Velocidad media</label>
+            <div className="Detail__dataFieldValue">35km/h</div>
           </div>
         </section>
         <section className="Detail__section">
@@ -250,7 +254,7 @@ class Detail extends Component {
           </div>
         </section>
         <section className="Detail__section">
-          <a download href={href}>Descargar datos</a>
+          <a class="Detail__downloadData" download href={href}>Descargar datos</a>
         </section>
       </div>
     );
