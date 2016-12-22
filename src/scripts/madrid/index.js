@@ -84,15 +84,20 @@ class Map extends Component {
 
     API.measurePointLocation.find().then((measurePoints) => {
       measurePoints.forEach((measurePoint) => {
-        const icon = new google.maps.MarkerImage("img/spritepoint.png");
-        const [lat,lng] = measurePoint.location.coordinates;
-        const marker = new google.maps.Marker({
-          position: new google.maps.LatLng(lat,lng),
-          map: map,
-          title: measurePoint.description,
-          icon: icon
-        });
-        marker.addListener("click", this.handleDetail.bind(this,marker,measurePoint));
+        const {load} = measurePoint;
+        const [measurePointInfo] = measurePoint.pos;
+        if (measurePointInfo && measurePointInfo.location) {
+          const [lat,lng] = measurePointInfo.location.coordinates;
+          const i = 3 - Math.floor(load / 25);
+          const icon = new google.maps.MarkerImage("img/spritepoint.png", new google.maps.Size(16,16), new google.maps.Point(i * 20,0));
+          const marker = new google.maps.Marker({
+            position: new google.maps.LatLng(lat,lng),
+            map: map,
+            title: measurePointInfo.description,
+            icon: icon
+          });
+          marker.addListener("click", this.handleDetail.bind(this,marker,measurePointInfo));
+        }
       });
     });
   }
