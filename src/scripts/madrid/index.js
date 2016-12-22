@@ -136,6 +136,7 @@ class Detail extends Component {
     });
     return (
       <div className={classes}>
+        <a className="Detail__close" href="#">x</a>
         <section className="Detail__section">
           <div className="Detail__mainInfo">
             <div className="Detail__address">

@@ -37,6 +37,7 @@
     "classnames": "^2.2.5",
     "connect-history-api-fallback": "^1.3.0",
     "inferno": "beta36",
+    "gulp-ttf2woff": "^1.1.0",
     "inferno-component": "beta36",
     "inferno-router": "beta36"
   }
