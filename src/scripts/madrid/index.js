@@ -171,7 +171,6 @@ class Map extends Component {
             position: new google.maps.LatLng(lat,lng),
             map: map,
             title: measurePointInfo.description,
-            scale: 0.5,
             icon: icon
           });
           marker.addListener("click", this.handleDetail.bind(this,marker,measurePointInfo));
