@@ -103,8 +103,7 @@ class Detail extends Component {
     super(props);
     this.view = null;
     this.handleGoogleStreetView = this.handleGoogleStreetView.bind(this);
-    this.handleIntensityGraph = this.handleIntensityGraph.bind(this);
-    this.handleLoadGraph = this.handleLoadGraph.bind(this);
+    this.handleGraph = this.handleGraph.bind(this);
     this.handleClose = this.handleClose.bind(this);
   }
 
@@ -150,8 +149,7 @@ class Detail extends Component {
 
   componentDidUpdate(prevProps,prevState) {
     if (this.state.data !== prevState.data) {
-      this.handleGraph(this.intensityGraph, "intensity");
-      this.handleGraph(this.loadGraph, "occupancy");
+      this.renderGraph(this.graph, ["intensity","occupancy","load"]);
     }
   }
 
@@ -159,45 +157,51 @@ class Detail extends Component {
     this.view.setVisible(false);
   }
 
-  handleGraph(canvas, field) {
+  renderGraphLine(context,field,color) {
     const {data} = this.state;
+    const {canvas} = context;
+    const [first] = data.slice(0,1);
+    const [last] = data.slice(-1);
+    const values = data.map((current) => current[field]);
+    const max = Math.max(...values);
+    const min = Math.min(...values);
+    const cw = Math.floor(canvas.width / values.length);
+    let cx = canvas.width;
+    context.beginPath();
+    for (let index = values.length - 1; index >= 0; index--) {
+      const current = values[index];
+      const px = index / (values.length - 1);
+      const py = (current - min) / (max - min);
+      const cy = Math.floor(canvas.height - (py * canvas.height));
+      const ch = Math.ceil(py * canvas.height);
+      cx -= cw + 1;
+      if (index === values.length - 1) {
+        context.moveTo(cx,cy);
+      } else {
+        context.lineTo(cx,cy);
+      }
+    }
+    context.lineWidth = 2;
+    context.strokeStyle = color;
+    context.stroke();
+  }
+
+  renderGraph(canvas, fields) {
+    const {data} = this.state;
+    const colors = ["#f00","#0f0","#00f"];
     if (data) {
       const context = canvas.getContext("2d");
-      const [first] = data.slice(0,1);
-      const [last] = data.slice(-1);
-      const values = data.map((current) => current[field]);
-      const max = Math.max(...values);
-      const min = Math.min(...values);
-      const cw = Math.floor(canvas.width / values.length);
       context.clearRect(0,0,canvas.width,canvas.height);
-      let cx = canvas.width;
-      for (let index = values.length - 1; index >= 0; index--) {
-        const current = values[index];
-        const px = index / (values.length - 1);
-        const py = (current - min) / (max - min);
-        const cy = Math.floor(canvas.height - (py * canvas.height));
-        const ch = Math.ceil(py * canvas.height);
-        cx -= cw + 1;
-        context.fillStyle = "#f00";
-        context.fillRect(cx,cy,cw,ch);
+      for (let index = 0; index < fields.length; index++) {
+        const color = colors[index];
+        const field = fields[index];
+        this.renderGraphLine(context, field, color);
       }
-      console.log(first.created,last.created);
-      context.font = "8px monospace";
-      context.fillStyle = "#000";
-      context.textBaseline = "top";
-      context.textAlign = "left";
-      context.fillText(last.created,canvas.width,0);
-      context.textAlign = "right";
-      context.fillText(first.created,0,0);
     }
   }
 
-  handleIntensityGraph(canvas) {
-    this.intensityGraph = canvas;
-  }
-
-  handleLoadGraph(canvas) {
-    this.loadGraph = canvas;
+  handleGraph(canvas) {
+    this.graph = canvas;
   }
 
   handleClose(e) {
@@ -242,10 +246,7 @@ class Detail extends Component {
         </section>
         <section className="Detail__section">
           <div className="Detail__graph">
-            <canvas ref={this.handleIntensityGraph}></canvas>
-          </div>
-          <div className="Detail__graph">
-            <canvas ref={this.handleLoadGraph}></canvas>
+            <canvas ref={this.handleGraph}></canvas>
           </div>
         </section>
         <section className="Detail__section">
