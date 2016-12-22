@@ -8,7 +8,7 @@
   flex-direction: column;
   align-items: center;
 
-  padding: 1rem 2rem;
+  padding: 1.5rem 3rem;
 
   background-color: $Color--timelineBackground;
   @extend shadow--layer;
@@ -17,9 +17,22 @@
 
 .Timeline__slider {
   width: 100%;
-  flex: 1 1 4rem;
+  flex: 1;
+  padding: 1.5rem 0;
   display: flex;
   align-items: center;
+}
+
+.Timeline__handler {
+  position: absolute;
+  width: 0.5rem;
+  height: 3rem;
+  background-color: $Color--timelineAccent;
+  margin-top: -1.5rem;
+  margin-left: -0.25rem;
+  border-radius: 0.125rem;
+  box-shadow: 0 0.5rem 0.5rem rgba(0,0,0,0.2);
+  cursor: w-resize;
 }
 
 .Timeline__base {
@@ -34,16 +47,24 @@
 }
 
 .Timeline__rangeOption {
-  flex: 1 0 33%;
-  text-align: center;
+  flex: 1 0 6rem;
+  line-height: 1;
   text-decoration: none;
-  color: $Color--darkGrey;
-  font-weight: bold;
-  padding: 0.25rem 1rem;
+  color: $Color--timelineFore;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 2.5rem;
+  font-size: 0.875rem;
   border: 1px solid $Color--timelineBorder;
   border-right: none;
 }
 
 .Timeline__rangeOption:last-child {
   border-right: 1px solid $Color--timelineBorder;
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.Timeline__rangeOption:first-child {
+  border-radius: 0.5rem 0 0 0.5rem;
 }

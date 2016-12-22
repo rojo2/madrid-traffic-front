@@ -42,6 +42,19 @@
 
 .Detail__streetView {
   height: 12rem;
+  position: relative;
+}
+
+.Detail__streetView:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  box-shadow: 0 0.5rem 2rem rgba(0,0,0,0.3) inset;
+  z-index: 10000;
+  pointer-events: none;
 }
 
 .Detail__graphContainer {

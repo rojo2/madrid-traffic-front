@@ -15,8 +15,10 @@ $Color--darkGrey: hsl(176, 40%, 10%);
 $Color--lightGrey: #d2d2d2;
 $Color--bg: white;
 
-$Color--timelineBackground: hsl(54, 80%, 60%);
-$Color--timelineBorder: hsl(54, 80%, 45%);
+$Color--timelineBackground: hsl(54, 15%, 10%);
+$Color--timelineBorder: hsl(54, 15%, 20%);
+$Color--timelineFore: hsl(54, 15%, 80%);
+$Color--timelineAccent: hsl(54, 80%, 60%);
 
 html {
   width: 100vw;
