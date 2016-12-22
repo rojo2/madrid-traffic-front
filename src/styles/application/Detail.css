@@ -4,14 +4,20 @@
   right: 0;
 
   width: 32rem;
-  padding: 1rem;
+  padding: 1rem 1.5rem;
 
   background-color: hsla(40, 0%, 100%, 0.85);
-  @extend shadow--layer;
+  @extend $Shadow--layer;
   transition: all 0.2s ease-in-out;
 }
 
 .Detail__section {
+  padding: 1rem 0;
+}
+
+.Detail__stats {
+  display: flex;
+  flex-wrap: wrap;
   padding: 1rem 0;
 }
 
@@ -24,7 +30,7 @@
   position: absolute;
   font-size: 1.5rem;
   top: 1rem;
-  right: 1rem;
+  right: 1.5rem;
   text-decoration: none;
   color: $Color--darkGrey;
 }
@@ -34,7 +40,25 @@
 }
 
 .Detail__address {
-  @extend font-style--headline;
+  @extend $FontStyle--headline;
   font-size: 1.125rem;
   margin-bottom: 1rem;
+}
+
+.Detail__dataField {
+  flex: 0 0 50%;
+  padding: 0 1rem 1rem 0;
+}
+
+.Detail__dataFieldLabel {
+  font-size: 0.75rem;
+}
+
+.Detail__dataFieldValue {
+  @extend $FontStyle--headline;
+}
+
+.Detail__downloadData {
+  padding: 0.75rem 1.5rem;
+  text;
 }
