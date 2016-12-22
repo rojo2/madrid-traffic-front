@@ -85,6 +85,8 @@ class Detail extends Component {
     super(props);
     this.view = null;
     this.handleGoogleStreetView = this.handleGoogleStreetView.bind(this);
+    this.handleIntensityGraph = this.handleIntensityGraph.bind(this);
+    this.handleLoadGraph = this.handleLoadGraph.bind(this);
   }
 
   handleGoogleStreetView(streetViewElement) {
@@ -116,7 +118,10 @@ class Detail extends Component {
 
         //console.log(measurePoint);
         API.measurePoint.findById(measurePoint.id).then((mp) => {
-          console.log(mp);
+          this.setState({
+            data: mp
+          });
+          //console.log(mp);
         }).catch((err) => {
           console.error(err);
         });
@@ -124,8 +129,55 @@ class Detail extends Component {
     }
   }
 
+  componentWillUpdate(nextProps,nextState) {
+    if (nextState.data !== this.state.data) {
+      this.handleGraph(this.intensityGraph, "intensity");
+      this.handleGraph(this.loadGraph, "occupancy");
+    }
+  }
+
   componentWillUnmount() {
     this.view.setVisible(false);
+  }
+
+  handleGraph(canvas, field) {
+    const {data} = this.state;
+    if (data) {
+      const context = canvas.getContext("2d");
+      const [first] = data.slice(0,1);
+      const [last] = data.slice(-1);
+      const values = data.map((current) => current[field]);
+      const max = Math.max(...values);
+      const min = Math.min(...values);
+      const cw = Math.floor(canvas.width / values.length);
+      context.clearRect(0,0,canvas.width,canvas.height);
+      for (let index = values.length - 1; index >= 0; index--) {
+        const current = values[index];
+        const px = index / (values.length - 1);
+        const py = (current - min) / (max - min);
+        const cx = Math.floor(px * canvas.width);
+        const cy = Math.floor(canvas.height - (py * canvas.height));
+        const ch = Math.floor(py * canvas.height);
+        context.fillStyle = "#f00";
+        context.fillRect(cx,cy,cw,ch);
+      }
+      console.log(first.created,last.created);
+      context.font = "8px monospace";
+      context.fillStyle = "#000";
+      context.textBaseline = "top";
+      context.textAlign = "left";
+      context.fillText(last.created,canvas.width,0);
+      context.textAlign = "right";
+      context.fillText(first.created,0,0);
+    }
+  }
+
+  handleIntensityGraph(canvas) {
+    this.intensityGraph = canvas;
+  }
+
+  handleLoadGraph(canvas) {
+    this.loadGraph = canvas;
   }
 
   render() {
@@ -162,8 +214,12 @@ class Detail extends Component {
           </div>
         </section>
         <section className="Detail__section">
-          <div className="Detail__graph">Graph</div>
-          <div className="Detail__graph">Graph</div>
+          <div className="Detail__graph">
+            <canvas ref={this.handleIntensityGraph}></canvas>
+          </div>
+          <div className="Detail__graph">
+            <canvas ref={this.handleLoadGraph}></canvas>
+          </div>
         </section>
         <section className="Detail__section">
           <a download href={href}>Descargar datos</a>
