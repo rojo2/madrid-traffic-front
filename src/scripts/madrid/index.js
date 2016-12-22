@@ -1,5 +1,6 @@
 import Inferno from "inferno";
 import Component from "inferno-component";
+import classNames from "classnames";
 import API from "madrid/API";
 
 class Application extends Component {
@@ -113,7 +114,12 @@ class Detail extends Component {
         this.view.setPosition(new google.maps.LatLng(lat,lng));
         this.view.setVisible(true);
 
-        //API.measurePoint.find({ id: })
+        //console.log(measurePoint);
+        API.measurePoint.findById(measurePoint.id).then((mp) => {
+          console.log(mp);
+        }).catch((err) => {
+          console.error(err);
+        });
       }
     }
   }
@@ -125,8 +131,11 @@ class Detail extends Component {
   render() {
     const {measurePoint} = this.props;
     const href = API.url("measure-point");
+    const classes = classNames("Detail", {
+      "is--hidden": !measurePoint
+    });
     return (
-      <div className="Detail">
+      <div className={classes}>
         <section className="Detail__section">
           <div className="Detail__mainInfo">
             <div className="Detail__address">
