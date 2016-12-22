@@ -12,7 +12,7 @@
 }
 
 $Color--darkGrey: hsl(176, 40%, 10%);
-$Color--lightGrey: #d2d2d2;
+$Color--lightGrey: hsl(176, 10%, 90%);
 $Color--bg: white;
 
 $Color--timelineBackground: hsl(54, 15%, 10%);
@@ -56,11 +56,11 @@ img {
   font-weight: bold;
 }
 @define-extend $Button {
-  padding: 0.75rem 1.5rem;
+  padding: 0.5rem 1.5rem;
   text-decoration: none;
-  background-color: $Color--darkGrey;
-  border-radius: 0.125rem;
-  color: white;
+  border: 1px solid $Color--darkGrey;
+  border-radius: 0.25rem;
+  color: $Color--darkGrey;
 }
 
 .Page__UI {
