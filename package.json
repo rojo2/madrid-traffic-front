@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:docker": "if [ ! -d node_modules ]; then npm run install; fi; gulp",
+    "start:docker": "if [ ! -d node_modules ]; then npm install; fi; gulp",
     "start:watch": "gulp"
   },
   "keywords": [],
