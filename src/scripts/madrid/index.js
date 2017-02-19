@@ -35,6 +35,313 @@ class Application extends Component {
   }
 }
 
+class WebGLOverlay extends google.maps.OverlayView {
+  constructor(bounds) {
+    super();
+
+    // map data.
+    this._bounds = bounds;
+
+    // canvas data
+    this._canvas = null;
+    this._context = null;
+
+    // rAF data
+    this._frameID = null;
+    this._frame = this._frame.bind(this);
+
+    // WebGL Matrices
+    this._projectionMatrix = new Float32Array(16);
+    this._mapMatrix = new Float32Array(16);
+
+    this._mapMatrixLocation = null;
+    this._positionLocation = null;
+    this._measureLocation = null;
+
+    // WebGL data
+    this._program = null;
+    this._vertexShader = null;
+    this._fragmentShader = null;
+    this._buffer = null;
+
+    this._topLeft = null;
+
+    this._arrayBuffer = new ArrayBuffer(36);
+    this._arrayBufferView = new DataView(this._arrayBuffer);
+    this._arrayBufferView.setFloat32(0, 40.41912438501767);
+    this._arrayBufferView.setFloat32(4, -3.720757259425547);
+  }
+
+  onAdd() {
+    const canvas = document.createElement("canvas");
+    canvas.style.position = "absolute";
+    canvas.style.pointerEvents = "none";
+
+    this._canvas = canvas;
+    const gl = this._context = canvas.getContext("webgl");
+
+    this._createBuffer();
+
+    this._createProgramFromSource(`
+      precision highp float;
+
+      attribute vec4 a_position;
+      attribute vec4 a_measure;
+
+      uniform mat4 u_mapMatrix;
+
+      varying vec4 v_measure;
+
+      #define PI 3.141592653589793
+      #define PI_180 PI / 180.0
+      #define PI_4 PI * 4.0
+
+      float latToY(float lat) {
+        float merc = -log(tan((0.25 + lat / 360.0) * PI));
+        return 128.0 * (1.0 + merc / PI);
+      }
+
+      float lngToX(float lng) {
+        if (lng > 180.0) {
+          return 256.0 * (lng / 360.0 - 0.5);
+        }
+        return 256.0 * (lng / 360.0 + 0.5);
+      }
+
+      vec2 getLatLng(vec2 latLng) {
+        float sinLat = sin(latLng.x * PI_180);
+        float y = (0.5 - log((1.0 + sinLat) / (1.0 - sinLat)) / (PI_4)) * 256.0;
+        float x = ((latLng.y + 180.0) / 360.0) * 256.0;
+        return vec2(x,y);
+      }
+
+      void main(void) {
+        v_measure = a_measure;
+
+        gl_PointSize = 64.0;
+
+        gl_Position = u_mapMatrix * vec4(
+          lngToX(a_position.y),
+          latToY(a_position.x),
+          0.0,
+          1.0
+        );
+      }
+    `, `
+      precision highp float;
+
+      varying vec4 v_measure;
+
+      void main(void) {
+        gl_FragColor = vec4(v_measure.x,1.0,1.0,1.0);
+      }
+    `);
+
+    const panes = this.getPanes();
+    panes.overlayLayer.appendChild(canvas);
+
+    this._start();
+  }
+
+  _createBuffer() {
+    const gl = this._context;
+    const buffer = this._buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, this._arrayBuffer, gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    return buffer;
+  }
+
+  _createShader(type, source) {
+    const gl = this._context;
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      throw gl.getShaderInfoLog(shader);
+    }
+    return shader;
+  }
+
+  _createFragmentShader(source) {
+    const gl = this._context;
+    return this._createShader(gl.FRAGMENT_SHADER, source);
+  }
+
+  _createVertexShader(source) {
+    const gl = this._context;
+    return this._createShader(gl.VERTEX_SHADER, source);
+  }
+
+  _createProgram(vertexShader, fragmentShader) {
+    const gl = this._context;
+    const program = this._program = gl.createProgram();
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      throw gl.getProgramInfoLog(program);
+    }
+    this._positionLocation = gl.getAttribLocation(this._program, "a_position");
+    this._measureLocation = gl.getAttribLocation(this._program, "a_measure");
+    this._mapMatrixLocation = gl.getUniformLocation(this._program, "u_mapMatrix");
+
+    return program;
+  }
+
+  _createProgramFromSource(vertexSource, fragmentSource) {
+    const vertexShader = this._vertexShader = this._createVertexShader(vertexSource);
+    const fragmentShader = this._fragmentShader = this._createFragmentShader(fragmentSource);
+    return this._program = this._createProgram(vertexShader, fragmentShader);
+  }
+
+  _updateCanvas() {
+    const map = this.getMap();
+
+    const width = map.getDiv().offsetWidth;
+    const height = map.getDiv().offsetHeight;
+
+    const top = map.getBounds().getNorthEast().lat();
+    const center = map.getCenter();
+    const scale = Math.pow(2, map.getZoom());
+    const left = center.lng() - (width * 180) / (256 * scale);
+    this._topLeft = new google.maps.LatLng(top, left);
+
+    const projection = this.getProjection();
+    const canvasCenter = projection.fromLatLngToDivPixel(center);
+
+    // Resize the image's div to fit the indicated dimensions.
+    const canvas = this._canvas;
+    canvas.style.width = width;
+    canvas.style.height = height;
+    canvas.width = width;
+    canvas.height = height;
+    const offsetX = -Math.round(width * 0.5 - canvasCenter.x);
+    const offsetY = -Math.round(height * 0.5 - canvasCenter.y);
+    canvas.style.transform = `translate(${offsetX}px,${offsetY}px)`;
+  }
+
+  _transformationMatrix(out, tx, ty, scale) {
+    this._scaleMatrix(out,scale);
+    this._translateMatrix(out,tx,ty);
+    return out;
+  }
+
+  _scaleMatrix(out, scale) {
+    out[0] *= scale;
+    out[1] *= scale;
+    out[2] *= scale;
+    out[3] *= scale;
+
+    out[4] *= scale;
+    out[5] *= scale;
+    out[6] *= scale;
+    out[7] *= scale;
+    return out;
+  }
+
+  _translateMatrix(out,tx,ty) {
+    out[12] += out[0]*tx + out[4]*ty;
+    out[13] += out[1]*tx + out[5]*ty;
+    out[14] += out[2]*tx + out[6]*ty;
+    out[15] += out[3]*tx + out[7]*ty;
+    return out;
+  }
+
+  _updateMatrix() {
+    const map = this.getMap();
+    const canvas = this._canvas;
+    const scale = Math.pow(2, map.getZoom());
+
+    // sets the projection matrix.
+    this._projectionMatrix.set([
+      2 / canvas.width, 0, 0, 0,
+      0, -2 / canvas.height, 0, 0,
+      0, 0, 0, 0,
+      -1, 1, 0, 1
+    ]);
+
+    const projection = map.getProjection();
+    const offset = projection.fromLatLngToPoint(this._topLeft);
+
+    // updates the map matrix.
+    this._mapMatrix.set(this._projectionMatrix);
+    this._transformationMatrix(this._mapMatrix, -offset.x, -offset.y, scale);
+  }
+
+  _update(time) {
+    this._updateCanvas();
+    this._updateMatrix();
+  }
+
+  _render() {
+    const canvas = this._canvas;
+    const gl = this._context;
+    gl.viewport(0,0,canvas.width,canvas.height);
+    gl.clearColor(0.0,0.0,0.0,0.5);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    gl.useProgram(this._program);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._buffer);
+
+    gl.vertexAttribPointer(this._positionLocation, 4, gl.FLOAT, gl.FALSE, 36, 0);
+    gl.vertexAttribPointer(this._measureLocation, 4, gl.FLOAT, gl.FALSE, 36, 12);
+
+    gl.enableVertexAttribArray(this._positionLocation);
+    gl.enableVertexAttribArray(this._measureLocation);
+
+    gl.uniformMatrix4fv(this._mapMatrixLocation, false, this._mapMatrix);
+
+    gl.drawArrays(gl.POINTS, 0, this._arrayBuffer.byteLength / 36);
+  }
+
+  _frame(time) {
+    this._update(time);
+    this._render();
+    this._requestFrame();
+  }
+
+  _cancelFrame() {
+    if (this._frameID !== null) {
+      window.cancelAnimationFrame(this._frameID);
+      this._frameID = null;
+    }
+  }
+
+  _requestFrame() {
+    this._frameID = window.requestAnimationFrame(this._frame);
+  }
+
+  _stop() {
+    this._cancelFrame();
+  }
+
+  _start() {
+    this._requestFrame();
+  }
+
+  draw() {
+
+  }
+
+  onRemove() {
+    this._stop();
+
+    const canvas = this._canvas;
+    const gl = this._context;
+
+    const extension = gl.getExtension("WEBGL_lose_context")
+    if (extension) {
+      extension.lose();
+    }
+    canvas.parentNode.removeChild(canvas);
+
+    this._canvas = null;
+    this._context = null;
+  }
+}
+
 class Map extends Component {
   constructor(props) {
     super(props);
@@ -74,7 +381,6 @@ class Map extends Component {
   }
 
   handleGoogleMaps(mapElement) {
-
     const mapStyles = [
         {
             "stylers": [
@@ -191,8 +497,7 @@ class Map extends Component {
         }
     ];
 
-    const styledMap = new google.maps.StyledMapType(mapStyles,
-        {name:"Styled Map"});
+    const styledMap = new google.maps.StyledMapType(mapStyles, {name: "Styled Map"});
 
     const map = this.map = new google.maps.Map(mapElement, {
       center: {lat: 40.4308087, lng: -3.6755942},
@@ -202,6 +507,19 @@ class Map extends Component {
       zoom: 13,
       styles: mapStyles
     });
+
+    const marker = new google.maps.Marker({
+      position: new google.maps.LatLng(40.41912438501767, -3.720757259425547)
+    });
+
+    marker.setMap(map);
+    const bounds = new google.maps.LatLngBounds(
+      new google.maps.LatLng(40.33245364116177, -3.8369430001853404),
+      new google.maps.LatLng(40.51340889639223, -3.580713428117341),
+    );
+
+    const overlay = window.overlay = new WebGLOverlay(bounds);
+    overlay.setMap(map);
 
     API.measurePointLocation.find().then((measurePoints) => {
       measurePoints.forEach((measurePoint) => {
