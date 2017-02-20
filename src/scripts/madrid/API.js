@@ -1,26 +1,30 @@
-import fetch, { getUrl } from "madrid/http";
+import { loadJSON, loadBuffer, getUrl } from "madrid/http";
 import qs from "querystring";
 
-const API = "http://172.25.0.3:3002";
+//const API = "http://172.25.0.3:3002";
+const API = "http://localhost:3000";
 
 const measurePoint = {
+  get(q) {
+    return loadBuffer(`${API}/bin/12-2016.bin`,q);
+  },
   find(q) {
-    return fetch(`${API}/measure-point`,q);
+    return loadJSON(`${API}/measure-point`,q);
   },
   findById(id,q) {
-    return fetch(`${API}/measure-point/${id}`,q);
+    return loadJSON(`${API}/measure-point/${id}`,q);
   }
 };
 
 const measurePointLocation = {
   find(q) {
-    return fetch(`${API}/measure-point-location`,q);
+    return loadJSON(`${API}/measure-point-location`,q);
   },
   findById(id,q) {
-    return fetch(`${API}/measure-point-location/${id}`,q);
+    return loadJSON(`${API}/measure-point-location/${id}`,q);
   },
   findNear(q) {
-    return fetch(`${API}/measure-point-location`,q);
+    return loadJSON(`${API}/measure-point-location`,q);
   }
 };
 

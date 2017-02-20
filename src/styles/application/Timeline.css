@@ -11,7 +11,7 @@
   padding: 1.5rem 3rem;
 
   background-color: $Color--timelineBackground;
-  @extend shadow--layer;
+  @extend $Shadow--layer;
   pointer-events: all;
 }
 
@@ -34,7 +34,10 @@
   border-radius: 0.125rem;
   box-shadow: 0 0.5rem 0.5rem rgba(0,0,0,0.2);
   cursor: w-resize;
-  animation: anim--timeline 20s linear infinite;
+}
+
+.Timeline__date {
+  color: $Color--timelineLegend;
 }
 
 .Timeline__base {
@@ -61,6 +64,11 @@
   font-size: 0.875rem;
   border: 1px solid $Color--timelineBorder;
   border-right: none;
+}
+
+.Timeline__rangeOption.is-active {
+  background: $Color--timelineFore;
+  color: $Color--timelineBackground;
 }
 
 .Timeline__rangeOption:last-child {
@@ -103,6 +111,7 @@
   height: 50%;
   background-color: $Color--timelineBorder;
 }
+
 @keyframes anim--timeline {
   from {
     left: 0;
