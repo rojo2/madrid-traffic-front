@@ -1,5 +1,15 @@
+import {fromDateToFloat,fromFloatToDate} from "madrid/utils/FloatDate";
 
+/**
+ * Esta es la capa encargada de renderizar los puntos usando WebGL.
+ */
 export class WebGLOverlay extends google.maps.OverlayView {
+  /**
+   * constructor
+   *
+   * @param {google.maps.LatLngBounds} bounds
+   * @param {ArrayBuffer} arrayBuffer
+   */
   constructor(bounds, arrayBuffer) {
     super();
 
@@ -31,11 +41,9 @@ export class WebGLOverlay extends google.maps.OverlayView {
     this._fragmentShader = null;
     this._buffer = null;
 
-    this._initialDate = new Date(2013,6,1,0,0,0);
     this._startDate = new Date(2016,11,1,0,0,0);
     this._endDate = new Date(2016,11,31,23,59,59);
     this._currentDate = new Date(2016,11,1,0,0,0);
-    this._timeFrame = 60000;
 
     this._progress = 0.0;
 
@@ -50,10 +58,21 @@ export class WebGLOverlay extends google.maps.OverlayView {
     }
   }
 
+  /**
+   * Obtiene el progreso.
+   *
+   * @return {number} Devuelve un valor entre 0 y 1
+   */
   getProgress() {
     return this._progress;
   }
 
+  /**
+   * Establece el progreso.
+   *
+   * @param {number} newProgress - Establece el progreso entre 0 y 1.
+   * @return {WebGLOverlay}
+   */
   setProgress(newProgress) {
     this._progress = newProgress;
     return this;
@@ -178,15 +197,6 @@ export class WebGLOverlay extends google.maps.OverlayView {
     panes.overlayLayer.appendChild(canvas);
 
     this._start();
-  }
-
-  _fromFloatToDate(date, value) {
-    date.setTime((value * this._timeFrame) + this._initialDate.getTime());
-    return date;
-  }
-
-  _fromDateToFloat(date) {
-    return (date.getTime() - this._initialDate.getTime()) / this._timeFrame;
   }
 
   _createBuffer() {
@@ -331,11 +341,11 @@ export class WebGLOverlay extends google.maps.OverlayView {
   _render(time) {
     const progress = this._progress;
 
-    const startTime = this._fromDateToFloat(this._startDate);
-    const endTime = this._fromDateToFloat(this._endDate);
+    const startTime = fromDateToFloat(this._startDate);
+    const endTime = fromDateToFloat(this._endDate);
 
     const currentTime = ((endTime - startTime) * progress) + startTime;
-    this._fromFloatToDate(this._currentDate, currentTime);
+    fromFloatToDate(this._currentDate, currentTime);
 
     const canvas = this._canvas;
     const gl = this._context;
