@@ -1,5 +1,8 @@
 import {fromDateToFloat,fromFloatToDate} from "madrid/utils/FloatDate";
 
+// indica el tamaño de una entrada (en bytes).
+const ENTRY_SIZE = 36;
+
 /**
  * Esta es la capa encargada de renderizar los puntos usando WebGL.
  */
@@ -49,7 +52,7 @@ export class WebGLOverlay extends google.maps.OverlayView {
 
     this._topLeft = null;
 
-    this._arrayBuffer = arrayBuffer || new ArrayBuffer(36);
+    this._arrayBuffer = arrayBuffer || new ArrayBuffer(ENTRY_SIZE);
     if (!arrayBuffer) {
       this._arrayBufferView = new DataView(this._arrayBuffer);
       // NOTE: These are little-endian float32.
@@ -75,6 +78,23 @@ export class WebGLOverlay extends google.maps.OverlayView {
    */
   setProgress(newProgress) {
     this._progress = newProgress;
+    return this;
+  }
+
+  getBuffer() {
+    return this._arrayBuffer;
+  }
+
+  setBuffer(arrayBuffer) {
+    if (arrayBuffer !== this._arrayBuffer) {
+      this._arrayBuffer = arrayBuffer;
+      if (this._buffer) {
+        const gl = this._context;
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this._arrayBuffer, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+      }
+    }
     return this;
   }
 
@@ -107,7 +127,8 @@ export class WebGLOverlay extends google.maps.OverlayView {
       #define MIN_SIZE 8.0
       #define MAX_SIZE 64.0
 
-      #define MIN_TIME 3600.0
+      // Este es el tiempo que permanece activo un punto.
+      #define MIN_TIME 120.0
 
       float latToY(float lat) {
         float merc = -log(tan((0.25 + lat / 360.0) * PI));
@@ -362,8 +383,8 @@ export class WebGLOverlay extends google.maps.OverlayView {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._buffer);
 
-    gl.vertexAttribPointer(this._positionLocation, 4, gl.FLOAT, gl.FALSE, 36, 0);
-    gl.vertexAttribPointer(this._measureLocation, 4, gl.FLOAT, gl.FALSE, 36, 12);
+    gl.vertexAttribPointer(this._positionLocation, 4, gl.FLOAT, gl.FALSE, ENTRY_SIZE, 0);
+    gl.vertexAttribPointer(this._measureLocation, 4, gl.FLOAT, gl.FALSE, ENTRY_SIZE, 12);
 
     gl.enableVertexAttribArray(this._positionLocation);
     gl.enableVertexAttribArray(this._measureLocation);
@@ -371,7 +392,7 @@ export class WebGLOverlay extends google.maps.OverlayView {
     gl.uniformMatrix4fv(this._mapMatrixLocation, false, this._mapMatrix);
     gl.uniform3f(this._timeLocation, startTime, currentTime, endTime);
 
-    gl.drawArrays(gl.POINTS, 0, this._arrayBuffer.byteLength / 36);
+    gl.drawArrays(gl.POINTS, 0, this._arrayBuffer.byteLength / ENTRY_SIZE);
   }
 
   _frame(time) {

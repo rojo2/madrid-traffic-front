@@ -5,8 +5,17 @@ import API from "madrid/API";
 import Map from "madrid/views/Map";
 import Detail from "madrid/views/Detail";
 import Timeline from "madrid/views/Timeline";
+import Loader from "madrid/views/Loader";
 
-const DURATION = 60000;
+/**
+ * Duración del progreso.
+ */
+const DURATION = 240000;
+
+/**
+ * Tiempo en el que termina el timeout y vuelve a comenzar
+ * la ejecución del progreso.
+ */
 const TIMEOUT = 10000;
 
 class Application extends Component {
@@ -14,15 +23,26 @@ class Application extends Component {
     super(props);
     this.handleDetailOpen = this.handleDetailOpen.bind(this);
     this.handleDetailClose = this.handleDetailClose.bind(this);
+
+    this.handleTimelineRelease = this.handleTimelineRelease.bind(this);
     this.handleTimelineRangeChange = this.handleTimelineRangeChange.bind(this);
     this.handleTimelineProgressChange = this.handleTimelineProgressChange.bind(this);
+
+    this.handleLoadStart = this.handleLoadStart.bind(this);
+    this.handleLoadEnd = this.handleLoadEnd.bind(this);
+    this.handleLoadError = this.handleLoadError.bind(this);
+
     this._frame = this._frame.bind(this);
     this._frameID = null;
+
     this._timeoutID = null;
+
     this.state = {
       measurePoint: null,
       progress: 0.0,
-      range: "day"
+      range: "day",
+      autoplay: true,
+      buffer: null
     };
   }
 
@@ -61,9 +81,14 @@ class Application extends Component {
     this.setState({ measurePoint: null });
   }
 
+  handleTimelineRelease() {
+    if (this.state.autoplay) {
+      this._requestTimeout();
+    }
+  }
+
   handleTimelineProgressChange(progress) {
     this._cancelFrame();
-    this._requestTimeout();
     this.setState({ progress: progress });
   }
 
@@ -71,8 +96,22 @@ class Application extends Component {
     this.setState({ range: range });
   }
 
-  componentWillMount() {
+  handleLoadStart() {
+    this._cancelFrame();
+  }
+
+  handleLoadEnd(buffer) {
+    console.log("hola", buffer);
+    this.setState({ buffer });
     this._requestFrame();
+  }
+
+  handleLoadError() {
+
+  }
+
+  componentWillUnmount() {
+    this._cancelFrame();
   }
 
   render() {
@@ -83,10 +122,11 @@ class Application extends Component {
     const currentDate = new Date(((endDate.getTime() - startDate.getTime()) * progress) + startDate.getTime());
     return (
       <div className="Page">
-        <Map startDate={startDate} endDate={endDate} progress={progress} onDetail={this.handleDetailOpen} measurePoint={this.state.measurePoint} />
+        <Map buffer={this.state.buffer} startDate={startDate} endDate={endDate} progress={progress} onDetail={this.handleDetailOpen} />
         <div className="Page__UI">
           <Detail onClose={this.handleDetailClose} measurePoint={this.state.measurePoint} />
-          <Timeline startDate={startDate} endDate={endDate} currentDate={currentDate} progress={progress} range={this.state.range} onProgressChange={this.handleTimelineProgressChange} onRangeChange={this.handleTimelineRangeChange} />
+          <Loader onStart={this.handleLoadStart} onEnd={this.handleLoadEnd} onError={this.handleLoadError} url={`http://localhost:3000/bin/12-2016.bin`} />
+          <Timeline startDate={startDate} endDate={endDate} currentDate={currentDate} progress={progress} range={this.state.range} onProgressChange={this.handleTimelineProgressChange} onRangeChange={this.handleTimelineRangeChange} onRelease={this.handleTimelineRelease} />
         </div>
       </div>
     );

@@ -2,6 +2,8 @@ import Inferno from "inferno";
 import Component from "inferno-component";
 import classNames from "classnames";
 
+import leftPad from "madrid/utils/leftPad";
+
 function getTimelineRangeOptionClasses(range, id) {
   return classNames("Timeline__rangeOption", {
     "is-active": range === id
@@ -12,32 +14,13 @@ function getTimelineLegendItems(range, startDate, endDate) {
   switch (range) {
     default:
     case "day":
-      return [
-        "00:00",
-        "01:00",
-        "02:00",
-        "03:00",
-        "04:00",
-        "05:00",
-        "06:00",
-        "07:00",
-        "08:00",
-        "09:00",
-        "10:00",
-        "11:00",
-        "12:00",
-        "13:00",
-        "14:00",
-        "15:00",
-        "16:00",
-        "17:00",
-        "18:00",
-        "19:00",
-        "20:00",
-        "21:00",
-        "22:00",
-        "23:00"
-      ];
+      const start = startDate.getHours();
+      const hours = Math.min(24, Math.round((endDate.getTime() - startDate.getTime()) / 3600000));
+      const list = [];
+      for (let index = start; index <= start + hours; index++) {
+        list.push(`${leftPad(index % 24)}:00`);
+      }
+      return list;
 
     case "week":
       return [
@@ -60,13 +43,74 @@ function getTimelineLegendItems(range, startDate, endDate) {
   }
 }
 
+function toRange(progress, currentProgress, range, startDate, endDate) {
+  let total, lapse, start, length;
+  switch(range) {
+    case "day":
+      total = Math.ceil((endDate.getTime() - startDate.getTime()) / 86400000);
+      lapse = Math.floor(currentProgress * total);
+      start = (lapse / total);
+      length = 1 / total;
+      return (Math.min(0.9999,progress) * length) + start; // Usamos min para prevenir que no se pase al siguiente día por error.
+
+    case "week":
+      total = Math.ceil((endDate.getTime() - startDate.getTime()) / 604800000);
+      lapse = Math.floor(currentProgress * total);
+      start = (lapse / total);
+      length = 1 / total;
+      return (Math.min(0.9999,progress) * length) + start; // Usamos min para prevenir que no se pase a la siguiente semana por error.
+
+    case "month":
+      return progress;
+  }
+}
+
+function fromRange(progress, range, startDate, endDate) {
+  let total, lapse, start, length;
+  switch(range) {
+    case "day":
+      total = Math.ceil((endDate.getTime() - startDate.getTime()) / 86400000);
+      lapse = Math.floor(progress * total);
+      start = (lapse / total);
+      length = 1 / total;
+      return (progress - start) / length;
+
+    case "week":
+      total = Math.ceil((endDate.getTime() - startDate.getTime()) / 604800000);
+      lapse = Math.floor(progress * total);
+      start = (lapse / total);
+      length = 1 / total;
+      return (progress - start) / length;
+
+    case "month":
+      return progress;
+  }
+}
+
+function getTimelineProgress(progress, range, startDate, endDate) {
+  return fromRange(progress, range, startDate, endDate);
+}
+
 export class Timeline extends Component {
   constructor(props) {
     super(props);
+    this.handleClick = this.handleClick.bind(this);
     this.handleMouseDown = this.handleMouseDown.bind(this);
     this.handleMouseMove = this.handleMouseMove.bind(this);
     this.handleMouseUp = this.handleMouseUp.bind(this);
     this.handleTimelineBase = this.handleTimelineBase.bind(this);
+  }
+
+  handleClick(e) {
+    if (e.button === 0) {
+      e.preventDefault();
+      const props = this.props;
+      const container = this.timelineBase;
+      const {left, width} = container.getBoundingClientRect();
+      const progress = (e.clientX - left) / width;
+      const clampedProgress = Math.max(0.0, Math.min(1.0, progress));
+      this.props.onProgressChange(toRange(clampedProgress, props.progress, props.range, props.startDate, props.endDate));
+    }
   }
 
   handleMouseDown(e) {
@@ -80,16 +124,18 @@ export class Timeline extends Component {
     if (e.button === 0) {
       document.removeEventListener("mousemove", this.handleMouseMove);
       document.removeEventListener("mouseup", this.handleMouseUp);
+      this.props.onRelease();
     }
   }
 
   handleMouseMove(e) {
     e.preventDefault();
+    const props = this.props;
     const container = this.timelineBase;
     const {left, width} = container.getBoundingClientRect();
     const progress = (e.clientX - left) / width;
     const clampedProgress = Math.max(0.0, Math.min(1.0, progress));
-    this.props.onProgressChange(clampedProgress);
+    this.props.onProgressChange(toRange(clampedProgress, props.progress, props.range, props.startDate, props.endDate));
   }
 
   handleTimelineBase(element) {
@@ -105,7 +151,8 @@ export class Timeline extends Component {
     const marks = items.map((legend) => {
       return (<div className="Timeline__mark"></div>);
     });
-    const styles = { left: `${props.progress * 100}%` };
+    const progress = getTimelineProgress(props.progress, props.range, props.startDate, props.endDate);
+    const styles = { left: `${progress * 100}%` };
     const date = props.currentDate;
     return (
       <div className="Timeline">
@@ -117,7 +164,7 @@ export class Timeline extends Component {
         <div className="Timeline__legend">
           {legends}
         </div>
-        <div className="Timeline__slider">
+        <div className="Timeline__slider" onClick={this.handleClick}>
           <div className="Timeline__marks">
             {marks}
           </div>
