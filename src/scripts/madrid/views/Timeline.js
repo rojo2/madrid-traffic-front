@@ -4,6 +4,9 @@ import classNames from "classnames";
 
 import leftPad from "madrid/utils/leftPad";
 
+const DAY_LENGTH = 86400000;
+const WEEK_LENGTH = 604800000;
+
 function getTimelineRangeOptionClasses(range, id) {
   return classNames("Timeline__rangeOption", {
     "is-active": range === id
@@ -15,10 +18,11 @@ function getTimelineLegendItems(range, startDate, endDate) {
     default:
     case "day":
       const start = startDate.getHours();
+      const minutes = startDate.getMinutes();
       const hours = Math.min(24, Math.round((endDate.getTime() - startDate.getTime()) / 3600000));
       const list = [];
       for (let index = start; index <= start + hours; index++) {
-        list.push(`${leftPad(index % 24)}:00`);
+        list.push(`${leftPad(index % 24)}:${leftPad(minutes)}`);
       }
       return list;
 
@@ -47,14 +51,14 @@ function toRange(progress, currentProgress, range, startDate, endDate) {
   let total, lapse, start, length;
   switch(range) {
     case "day":
-      total = Math.ceil((endDate.getTime() - startDate.getTime()) / 86400000);
+      total = Math.ceil((endDate.getTime() - startDate.getTime()) / DAY_LENGTH);
       lapse = Math.floor(currentProgress * total);
       start = (lapse / total);
       length = 1 / total;
       return (Math.min(0.9999,progress) * length) + start; // Usamos min para prevenir que no se pase al siguiente día por error.
 
     case "week":
-      total = Math.ceil((endDate.getTime() - startDate.getTime()) / 604800000);
+      total = Math.ceil((endDate.getTime() - startDate.getTime()) / WEEK_LENGTH);
       lapse = Math.floor(currentProgress * total);
       start = (lapse / total);
       length = 1 / total;
@@ -69,14 +73,14 @@ function fromRange(progress, range, startDate, endDate) {
   let total, lapse, start, length;
   switch(range) {
     case "day":
-      total = Math.ceil((endDate.getTime() - startDate.getTime()) / 86400000);
+      total = Math.ceil((endDate.getTime() - startDate.getTime()) / DAY_LENGTH);
       lapse = Math.floor(progress * total);
       start = (lapse / total);
       length = 1 / total;
       return (progress - start) / length;
 
     case "week":
-      total = Math.ceil((endDate.getTime() - startDate.getTime()) / 604800000);
+      total = Math.ceil((endDate.getTime() - startDate.getTime()) / WEEK_LENGTH);
       lapse = Math.floor(progress * total);
       start = (lapse / total);
       length = 1 / total;
@@ -175,7 +179,7 @@ export class Timeline extends Component {
           </div>
         </div>
         <div className="Timeline__date">
-          {date.toISOString()}
+          {date.toString()}
         </div>
       </div>
     );

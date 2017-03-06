@@ -41,8 +41,11 @@ export class WebGLOverlay extends google.maps.OverlayView {
     // WebGL data
     this._program = null;
     this._vertexShader = null;
-    this._fragmentShader = null;
+    this._fragmentShaderColor = null;
+    this._fragmentShaderPicker = null;
     this._buffer = null;
+    this._renderBuffer = null;
+    this._frameBuffer = null;
 
     this._startDate = new Date(2016,11,1,0,0,0);
     this._endDate = new Date(2016,11,31,23,59,59);
@@ -81,10 +84,19 @@ export class WebGLOverlay extends google.maps.OverlayView {
     return this;
   }
 
+  /**
+   * Devuelve el array buffer con los datos.
+   */
   getBuffer() {
     return this._arrayBuffer;
   }
 
+  /**
+   * Establece un nuevo arraybuffer
+   *
+   * @param {ArrayBuffer} arrayBuffer
+   * @return {WebGLOverlay}
+   */
   setBuffer(arrayBuffer) {
     if (arrayBuffer !== this._arrayBuffer) {
       this._arrayBuffer = arrayBuffer;
@@ -103,9 +115,28 @@ export class WebGLOverlay extends google.maps.OverlayView {
     canvas.style.position = "absolute";
     canvas.style.pointerEvents = "none";
 
-    const gl = this._context = canvas.getContext("webgl");
+    const gl = this._context = canvas.getContext("webgl", {
+      premultipliedAlpha: false
+    });
+    this._createShaders();
     this._createBuffer();
-    this._createProgramFromSource(`
+    this._createFrameBuffer();
+    this._program = this._createProgram(this._vertexShader, this._fragmentShaderColor);
+    this._frameBufferProgram = this._createProgram(this._vertexShader, this._fragmentShaderPicker);
+
+    this._positionLocation = gl.getAttribLocation(this._program, "a_position");
+    this._measureLocation = gl.getAttribLocation(this._program, "a_measure");
+    this._mapMatrixLocation = gl.getUniformLocation(this._program, "u_mapMatrix");
+    this._timeLocation = gl.getUniformLocation(this._program, "u_time");
+
+    const panes = this.getPanes();
+    panes.overlayLayer.appendChild(canvas);
+
+    this._start();
+  }
+
+  _createShaders() {
+    this._vertexShader = this._createVertexShader(`
       precision highp float;
 
       attribute vec4 a_position;
@@ -124,7 +155,7 @@ export class WebGLOverlay extends google.maps.OverlayView {
 
       #define OUTSIDE -2.0
 
-      #define MIN_SIZE 8.0
+      #define MIN_SIZE 16.0
       #define MAX_SIZE 64.0
 
       // Este es el tiempo que permanece activo un punto.
@@ -162,7 +193,7 @@ export class WebGLOverlay extends google.maps.OverlayView {
           gl_Position = vec4(OUTSIDE,OUTSIDE,OUTSIDE,OUTSIDE);
         } else {
           float progress = (v_measure.z / 100.0);
-          gl_PointSize = (MIN_SIZE + (progress * (MAX_SIZE - MIN_SIZE))) * v_distance;
+          gl_PointSize = (MIN_SIZE + (progress * (MAX_SIZE - MIN_SIZE)));
 
           gl_Position = u_mapMatrix * vec4(
             lngToX(a_position.y),
@@ -172,7 +203,9 @@ export class WebGLOverlay extends google.maps.OverlayView {
           );
         }
       }
-    `, `
+    `);
+
+    this._fragmentShaderColor = this._createFragmentShader(`
       precision highp float;
 
       varying vec4 v_measure;
@@ -210,14 +243,39 @@ export class WebGLOverlay extends google.maps.OverlayView {
           discard;
         }
         vec3 color = getColor(1.0 - (max(0.0,v_measure.y) / 100.0));
-        gl_FragColor = vec4(color,0.85);
+        gl_FragColor = vec4(color,clamp(v_distance,0.0,1.0));
       }
     `);
 
-    const panes = this.getPanes();
-    panes.overlayLayer.appendChild(canvas);
+    this._fragmentShaderPicker = this._createFragmentShader(`
+      precision highp float;
 
-    this._start();
+      varying vec4 v_measure;
+      varying float v_distance;
+
+      vec3 unpackColor(float f) {
+        vec3 color;
+        color.r = floor(f / 65536.0);
+        color.g = floor((f - color.r * 65536.0) / 256.0);
+        color.b = floor(f - color.r * 65536.0 - color.g * 256.0);
+        return color / 256.0;
+      }
+
+      void main(void) {
+        vec2 d = gl_PointCoord.xy - 0.5;
+        float p = length(d);
+        if (p > 0.5) {
+          discard;
+        }
+        gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+      }
+    `);
+  }
+
+  _createFrameBuffer() {
+    const gl = this._context;
+    this._frameBuffer = gl.createFramebuffer();
+    this._renderBuffer = gl.createRenderbuffer();
   }
 
   _createBuffer() {
@@ -252,24 +310,20 @@ export class WebGLOverlay extends google.maps.OverlayView {
 
   _createProgram(vertexShader, fragmentShader) {
     const gl = this._context;
-    const program = this._program = gl.createProgram();
+    const program = gl.createProgram();
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
     gl.linkProgram(program);
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
       throw gl.getProgramInfoLog(program);
     }
-    this._positionLocation = gl.getAttribLocation(this._program, "a_position");
-    this._measureLocation = gl.getAttribLocation(this._program, "a_measure");
-    this._mapMatrixLocation = gl.getUniformLocation(this._program, "u_mapMatrix");
-    this._timeLocation = gl.getUniformLocation(this._program, "u_time");
     return program;
   }
 
   _createProgramFromSource(vertexSource, fragmentSource) {
-    const vertexShader = this._vertexShader = this._createVertexShader(vertexSource);
-    const fragmentShader = this._fragmentShader = this._createFragmentShader(fragmentSource);
-    return this._program = this._createProgram(vertexShader, fragmentShader);
+    const vertexShader = this._createVertexShader(vertexSource);
+    const fragmentShader = this._createFragmentShader(fragmentSource);
+    return this._createProgram(vertexShader, fragmentShader);
   }
 
   _updateCanvas() {
@@ -371,13 +425,50 @@ export class WebGLOverlay extends google.maps.OverlayView {
     const canvas = this._canvas;
     const gl = this._context;
 
+    /**
+     * Paso encargado de renderizar a un renderbuffer.
+     */
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this._frameBuffer);
+    gl.bindRenderbuffer(gl.RENDERBUFFER, this._renderBuffer);
+    gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA4, canvas.width, canvas.height);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, this._renderBuffer);
+    //gl.viewport(0,0,canvas.width,canvas.height);
+    gl.clearColor(0.0,0.0,0.0,0.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.disable(gl.DEPTH_TEST);
+
+    //gl.disable(gl.BLEND);
+    //gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+    //gl.useProgram(this._frameBufferProgram);
+
+    //gl.bindBuffer(gl.ARRAY_BUFFER, this._buffer);
+
+    //gl.vertexAttribPointer(this._positionLocation, 4, gl.FLOAT, gl.FALSE, ENTRY_SIZE, 0);
+    //gl.vertexAttribPointer(this._measureLocation, 4, gl.FLOAT, gl.FALSE, ENTRY_SIZE, 12);
+
+    //gl.enableVertexAttribArray(this._positionLocation);
+    //gl.enableVertexAttribArray(this._measureLocation);
+
+    //gl.uniformMatrix4fv(this._mapMatrixLocation, false, this._mapMatrix);
+    //gl.uniform3f(this._timeLocation, startTime, currentTime, endTime);
+
+    //gl.drawArrays(gl.POINTS, 0, this._arrayBuffer.byteLength / ENTRY_SIZE);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+
+    /**
+     * Paso encargado de renderizar a canvas.
+     */
     gl.viewport(0,0,canvas.width,canvas.height);
     gl.clearColor(0.0,0.0,0.0,0.0);
 
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.disable(gl.DEPTH_TEST);
+    gl.blendFunc(gl.ONE_MINUS_DST_ALPHA, gl.DST_ALPHA);
 
     gl.useProgram(this._program);
 

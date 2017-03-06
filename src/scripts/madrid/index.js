@@ -118,8 +118,11 @@ class Application extends Component {
     // TODO: Buscar una manera de determinar la fecha.
     const startDate = new Date(2016,6,1,19,30,0);
     const endDate = new Date(2016,6,31,0,0,0);
+    const startTime = startDate.getTime();
+    const endTime = endDate.getTime();
+    const timeSpan = endTime - startTime;
     const progress = this.state.progress;
-    const currentDate = new Date(((endDate.getTime() - startDate.getTime()) * progress) + startDate.getTime());
+    const currentDate = new Date((timeSpan * progress) + startTime);
     return (
       <div className="Page">
         <Map buffer={this.state.buffer} startDate={startDate} endDate={endDate} progress={progress} onDetail={this.handleDetailOpen} />
