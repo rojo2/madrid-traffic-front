@@ -1,7 +1,7 @@
 import {fromDateToFloat,fromFloatToDate} from "madrid/utils/FloatDate";
 
 // indica el tamaño de una entrada (en bytes).
-const ENTRY_SIZE = 36;
+const ENTRY_SIZE = 40;
 
 /**
  * Esta es la capa encargada de renderizar los puntos usando WebGL.
@@ -267,7 +267,7 @@ export class WebGLOverlay extends google.maps.OverlayView {
         if (p > 0.5) {
           discard;
         }
-        gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+        gl_FragColor = vec4(unpackColor(v_measure.x), 1.0);
       }
     `);
   }
