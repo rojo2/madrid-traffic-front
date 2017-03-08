@@ -6,7 +6,7 @@ const API = "http://localhost:3000";
 
 const measurePoint = {
   get(q) {
-    return loadBuffer(`${API}/bin/12-2016.bin`,q);
+    return loadBuffer(`${API}/bin/2016-12.bin`,q);
   },
   find(q) {
     return loadJSON(`${API}/measure-point`,q);
