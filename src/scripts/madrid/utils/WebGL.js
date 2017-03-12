@@ -7,11 +7,11 @@ export function createFrameBuffer(gl) {
   };
 }
 
-export function createBuffer(gl, arrayBuffer) {
+export function createBuffer(gl, arrayBuffer, type = gl.ARRAY_BUFFER, draw = gl.STATIC_DRAW) {
   const buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, arrayBuffer, gl.STATIC_DRAW);
-  gl.bindBuffer(gl.ARRAY_BUFFER, null);
+  gl.bindBuffer(type, buffer);
+  gl.bufferData(type, arrayBuffer, draw);
+  gl.bindBuffer(type, null);
   return buffer;
 }
 
@@ -50,7 +50,12 @@ export function createProgramFromSource(gl, vertexSource, fragmentSource) {
   return createProgram(gl, vertexShader, fragmentShader);
 }
 
+export function createContext(canvas, options = null) {
+  return canvas.getContext("webgl2", options);
+}
+
 export default {
+  createContext,
   createFrameBuffer,
   createBuffer,
   createShader,

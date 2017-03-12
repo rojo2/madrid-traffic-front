@@ -53,9 +53,7 @@ export class Detail extends Component {
   }
 
   componentDidUpdate(prevProps,prevState) {
-    if (this.state.data !== prevState.data) {
-      this.renderGraph(this.graph, ["intensity","load"]);
-    }
+    // TODO: Esto debería renderizar una gráfica con los datos de la zona.
   }
 
   componentWillUnmount() {
@@ -73,84 +71,10 @@ export class Detail extends Component {
     this.props.onClose();
   }
 
-  renderGraphBackground(context) {
-    const {data} = this.state;
-    const {canvas} = context;
-    const cw = Math.floor(canvas.width / data.length);
-    let cx = canvas.width;
-    for (let index = data.length - 1; index >= 0; index--) {
-      context.beginPath();
-      context.moveTo(cx,0);
-      context.lineTo(cx,canvas.height);
-      context.strokeStyle = "#eee";
-      context.stroke();
-      //context.closePath();
-      cx -= cw + 1;
-    }
-
-    const lines = 5;
-    for (let index = 0; index < lines; index++) {
-      const py = index / (lines - 1);
-      const cy = py * canvas.height;
-      context.beginPath();
-      context.moveTo(0,cy);
-      context.lineTo(canvas.width,cy);
-      context.strokeStyle = "#eee";
-      context.stroke();
-    }
-  }
-
-  renderGraphLine(context,field,color) {
-    const {data} = this.state;
-    const {canvas} = context;
-    const [first] = data.slice(0,1);
-    const [last] = data.slice(-1);
-    const values = data.map((current) => current[field]);
-    const max = Math.max(...values);
-    const min = Math.min(...values);
-    const cw = Math.floor(canvas.width / values.length);
-    let cx = canvas.width;
-    context.beginPath();
-    for (let index = values.length - 1; index >= 0; index--) {
-      const current = values[index];
-      const px = index / (values.length - 1);
-      const py = (current - min) / (max - min);
-      const cy = Math.floor(canvas.height - (py * canvas.height));
-      const ch = Math.ceil(py * canvas.height);
-      cx -= cw + 1;
-      if (index === values.length - 1) {
-        context.moveTo(cx,cy);
-      } else {
-        context.lineTo(cx,cy);
-      }
-    }
-    context.lineWidth = 2;
-    context.strokeStyle = color;
-    context.stroke();
-  }
-
-  renderGraph(canvas, fields) {
-    const {data} = this.state;
-    const colors = ["#29cc75","#ebda47","#cc6a29","#cc2933"];
-    if (data) {
-      const context = canvas.getContext("2d");
-      context.clearRect(0,0,canvas.width,canvas.height);
-      this.renderGraphBackground(context);
-      for (let index = 0; index < fields.length; index++) {
-        const color = colors[index];
-        const field = fields[index];
-        this.renderGraphLine(context, field, color);
-      }
-    }
-  }
-
   getField(field) {
-    const {data} = this.state;
+    const data = (this.props.measurePoint && this.props.measurePoint.data) || null;
     if (data) {
-      const [first] = data.slice(0,1);
-      if ((first.kind === "PUNTOS MEDIDA M-30" && field === "average") || field !== "average") {
-        return first[field];
-      }
+      return data[field];
     }
     return "-";
   }
@@ -172,8 +96,8 @@ export class Detail extends Component {
   }
 
   render() {
+    const href = "";
     const {measurePoint} = this.props;
-    const href = API.url("measure-point");
     const classes = classNames("Detail", {
       "is--hidden": !measurePoint
     });

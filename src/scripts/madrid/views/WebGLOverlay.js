@@ -1,7 +1,6 @@
 import {fromDateToFloat,fromFloatToDate} from "madrid/utils/FloatDate";
-
-// indica el tamaño de una entrada (en bytes).
-const ENTRY_SIZE = 40;
+import WebGL from "madrid/utils/WebGL";
+import {ENTRY_SIZE} from "madrid/constants";
 
 /**
  * Esta es la capa encargada de renderizar los puntos usando WebGL.
@@ -38,11 +37,13 @@ export class WebGLOverlay extends google.maps.OverlayView {
     this._mapMatrixLocation = null;
     this._positionLocation = null;
     this._measureLocation = null;
+    this._colorLocation = null;
     this._timeLocation = null;
 
     this._fbMapMatrixLocation = null;
     this._fbPositionLocation = null;
     this._fbMeasureLocation = null;
+    this._fbColorLocation = null;
     this._fbTimeLocation = null;
 
     // WebGL data
@@ -63,6 +64,9 @@ export class WebGLOverlay extends google.maps.OverlayView {
 
     this._pixel = new Uint8Array(4);
     this._isOver = false;
+    this._currentStep = 0;
+    this._lastStep = -1;
+    this._showIds = false;
 
     this._posX = 0;
     this._posY = 0;
@@ -72,6 +76,7 @@ export class WebGLOverlay extends google.maps.OverlayView {
     this._topLeft = null;
 
     this._arrayBuffer = arrayBuffer || new ArrayBuffer(ENTRY_SIZE);
+    this._slicedArrayBuffer = null;
     if (!arrayBuffer) {
       this._arrayBufferView = new DataView(this._arrayBuffer);
       // NOTE: These are little-endian float32.
@@ -135,23 +140,25 @@ export class WebGLOverlay extends google.maps.OverlayView {
     canvas.style.position = "absolute";
     canvas.style.pointerEvents = "none";
 
-    const gl = this._context = canvas.getContext("webgl", {
+    const gl = this._context = WebGL.createContext(canvas, {
       premultipliedAlpha: false
     });
 
     this._createShaders();
-    this._createBuffer();
+    this._buffer = this._createBuffer();
     this._createFrameBuffer();
 
     this._program = this._createProgram(this._vertexShaderColor, this._fragmentShaderColor);
     this._positionLocation = gl.getAttribLocation(this._program, "a_position");
     this._measureLocation = gl.getAttribLocation(this._program, "a_measure");
+    this._colorLocation = gl.getAttribLocation(this._program, "a_color");
     this._mapMatrixLocation = gl.getUniformLocation(this._program, "u_mapMatrix");
     this._timeLocation = gl.getUniformLocation(this._program, "u_time");
 
     this._fbProgram = this._createProgram(this._vertexShaderPicker, this._fragmentShaderPicker);
     this._fbPositionLocation = gl.getAttribLocation(this._fbProgram, "a_position");
     this._fbMeasureLocation = gl.getAttribLocation(this._fbProgram, "a_measure");
+    this._fbColorLocation = gl.getAttribLocation(this._fbProgram, "a_color");
     this._fbMapMatrixLocation = gl.getUniformLocation(this._fbProgram, "u_mapMatrix");
     this._fbTimeLocation = gl.getUniformLocation(this._fbProgram, "u_time");
 
@@ -162,6 +169,11 @@ export class WebGLOverlay extends google.maps.OverlayView {
   }
 
   _createShaders() {
+
+    const MAX_SIZE = 64;
+    const MIN_SIZE = 16;
+    const MIN_TIME = 480;
+
     this._vertexShaderColor = this._createVertexShader(`
       precision highp float;
 
@@ -181,11 +193,11 @@ export class WebGLOverlay extends google.maps.OverlayView {
 
       #define OUTSIDE -2.0
 
-      #define MIN_SIZE 16.0
-      #define MAX_SIZE 64.0
+      #define MIN_SIZE ${MIN_SIZE.toFixed(1)}
+      #define MAX_SIZE ${MAX_SIZE.toFixed(1)}
 
       // Este es el tiempo que permanece activo un punto.
-      #define MIN_TIME 480.0
+      #define MIN_TIME ${MIN_TIME.toFixed(1)}
 
       float latToY(float lat) {
         float merc = -log(tan((0.25 + lat / 360.0) * PI));
@@ -218,8 +230,8 @@ export class WebGLOverlay extends google.maps.OverlayView {
         if (start < 0.0 || end > 0.0 || abs(current) > MIN_TIME) {
           gl_Position = vec4(OUTSIDE,OUTSIDE,OUTSIDE,OUTSIDE);
         } else {
-          float progress = (v_measure.w / 100.0);
-          gl_PointSize = (MIN_SIZE + (progress * (MAX_SIZE - MIN_SIZE)));
+          float progress = (v_measure.z / 100.0);
+          gl_PointSize = (MIN_SIZE + (progress * (MAX_SIZE - MIN_SIZE))) * v_distance;
 
           gl_Position = u_mapMatrix * vec4(
             lngToX(a_position.y),
@@ -236,10 +248,12 @@ export class WebGLOverlay extends google.maps.OverlayView {
 
       attribute vec4 a_position;
       attribute vec4 a_measure;
+      attribute vec4 a_color;
 
       uniform vec3 u_time;
       uniform mat4 u_mapMatrix;
 
+      varying vec4 v_color;
       varying vec4 v_measure;
       varying float v_distance;
 
@@ -250,11 +264,11 @@ export class WebGLOverlay extends google.maps.OverlayView {
 
       #define OUTSIDE -2.0
 
-      #define MIN_SIZE 16.0
-      #define MAX_SIZE 64.0
+      #define MIN_SIZE ${MIN_SIZE.toFixed(1)}
+      #define MAX_SIZE ${MAX_SIZE.toFixed(1)}
 
       // Este es el tiempo que permanece activo un punto.
-      #define MIN_TIME 480.0
+      #define MIN_TIME ${MIN_TIME.toFixed(1)}
 
       float latToY(float lat) {
         float merc = -log(tan((0.25 + lat / 360.0) * PI));
@@ -277,6 +291,7 @@ export class WebGLOverlay extends google.maps.OverlayView {
 
       void main(void) {
         v_measure = a_measure;
+        v_color = a_color;
 
         float start = a_position.z - u_time.x;
         float current = a_position.z - u_time.y;
@@ -287,7 +302,7 @@ export class WebGLOverlay extends google.maps.OverlayView {
         if (start < 0.0 || end > 0.0 || abs(current) > MIN_TIME) {
           gl_Position = vec4(OUTSIDE,OUTSIDE,OUTSIDE,OUTSIDE);
         } else {
-          float progress = (v_measure.w / 100.0);
+          float progress = (v_measure.z / 100.0);
           gl_PointSize = (MIN_SIZE + (progress * (MAX_SIZE - MIN_SIZE)));
 
           gl_Position = u_mapMatrix * vec4(
@@ -337,27 +352,17 @@ export class WebGLOverlay extends google.maps.OverlayView {
         if (p > 0.5) {
           discard;
         }
-        vec3 color = getColor(1.0 - (max(0.0,v_measure.z) / 100.0));
-        gl_FragColor = vec4(color,clamp(v_distance,0.0,1.0));
+        vec3 color = getColor(1.0 - (max(0.0,v_measure.y) / 100.0));
+        gl_FragColor = vec4(color,1.0);
       }
     `);
 
     this._fragmentShaderPicker = this._createFragmentShader(`
       precision highp float;
 
+      varying vec4 v_color;
       varying vec4 v_measure;
       varying float v_distance;
-
-      #define MAX_BYTE 256.0
-      #define MAX_SHORT 65536.0
-
-      vec3 unpackColor(float f) {
-        vec3 color;
-        color.r = floor(f / MAX_SHORT);
-        color.g = floor((f - color.r * MAX_SHORT) / MAX_BYTE);
-        color.b = floor(f - color.r * MAX_SHORT - color.g * MAX_BYTE);
-        return color / MAX_BYTE;
-      }
 
       void main(void) {
         vec2 d = gl_PointCoord.xy - 0.5;
@@ -365,7 +370,7 @@ export class WebGLOverlay extends google.maps.OverlayView {
         if (p > 0.5) {
           discard;
         }
-        gl_FragColor = vec4(unpackColor(v_measure.x), 1.0);
+        gl_FragColor = v_color;
       }
     `);
   }
@@ -373,62 +378,31 @@ export class WebGLOverlay extends google.maps.OverlayView {
   _createFrameBuffer() {
     const gl = this._context;
     const canvas = this._canvas;
+
     this._frameBuffer = gl.createFramebuffer();
     this._renderBuffer = gl.createRenderbuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._frameBuffer);
     gl.bindRenderbuffer(gl.RENDERBUFFER, this._renderBuffer);
-    gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA4, canvas.width, canvas.height);
+    gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA8, canvas.width, canvas.height);
     gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, this._renderBuffer);
     gl.bindRenderbuffer(gl.RENDERBUFFER, null);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
 
   _createBuffer() {
-    const gl = this._context;
-    const buffer = this._buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, this._arrayBuffer, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    return buffer;
-  }
-
-  _createShader(type, source) {
-    const gl = this._context;
-    const shader = gl.createShader(type);
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      throw gl.getShaderInfoLog(shader);
-    }
-    return shader;
+    return WebGL.createBuffer(this._context, this._arrayBuffer);
   }
 
   _createFragmentShader(source) {
-    const gl = this._context;
-    return this._createShader(gl.FRAGMENT_SHADER, source);
+    return WebGL.createFragmentShader(this._context, source);
   }
 
   _createVertexShader(source) {
-    const gl = this._context;
-    return this._createShader(gl.VERTEX_SHADER, source);
+    return WebGL.createVertexShader(this._context, source);
   }
 
   _createProgram(vertexShader, fragmentShader) {
-    const gl = this._context;
-    const program = gl.createProgram();
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      throw gl.getProgramInfoLog(program);
-    }
-    return program;
-  }
-
-  _createProgramFromSource(vertexSource, fragmentSource) {
-    const vertexShader = this._createVertexShader(vertexSource);
-    const fragmentShader = this._createFragmentShader(fragmentSource);
-    return this._createProgram(vertexShader, fragmentShader);
+    return WebGL.createProgram(this._context, vertexShader, fragmentShader);
   }
 
   _updateCanvas() {
@@ -537,9 +511,8 @@ export class WebGLOverlay extends google.maps.OverlayView {
 
     if (canvas.width !== this._canvasWidth
      || canvas.height !== this._canvasHeight) {
-       const extension = gl.getExtension("EXT_sRGB");
        gl.bindRenderbuffer(gl.RENDERBUFFER, this._renderBuffer);
-       gl.renderbufferStorage(gl.RENDERBUFFER, extension.SRGB8_ALPHA8_EXT, canvas.width, canvas.height);
+       gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA8, canvas.width, canvas.height);
        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, this._renderBuffer);
        gl.bindRenderbuffer(gl.RENDERBUFFER, null);
        gl.viewport(0,0,canvas.width,canvas.height);
@@ -556,9 +529,11 @@ export class WebGLOverlay extends google.maps.OverlayView {
 
     gl.vertexAttribPointer(this._fbPositionLocation, 4, gl.FLOAT, gl.FALSE, ENTRY_SIZE, 0);
     gl.vertexAttribPointer(this._fbMeasureLocation, 4, gl.FLOAT, gl.FALSE, ENTRY_SIZE, 16);
+    gl.vertexAttribPointer(this._fbColorLocation, 4, gl.FLOAT, gl.FALSE, ENTRY_SIZE, 32);
 
     gl.enableVertexAttribArray(this._fbPositionLocation);
     gl.enableVertexAttribArray(this._fbMeasureLocation);
+    gl.enableVertexAttribArray(this._fbColorLocation);
 
     gl.uniformMatrix4fv(this._fbMapMatrixLocation, false, this._mapMatrix);
     gl.uniform3f(this._fbTimeLocation, startTime, currentTime, endTime);
@@ -566,6 +541,7 @@ export class WebGLOverlay extends google.maps.OverlayView {
     gl.drawArrays(gl.POINTS, 0, this._arrayBuffer.byteLength / ENTRY_SIZE);
 
     gl.readPixels(this._posX,this._posY,1,1,gl.RGBA,gl.UNSIGNED_BYTE,this._pixel);
+
     const [,,,a] = this._pixel;
     if (a > 0) {
       this._isOver = true;
@@ -584,41 +560,48 @@ export class WebGLOverlay extends google.maps.OverlayView {
       this._canvasWidth = canvas.width;
       this._canvasHeight = canvas.height;
     }
+
     gl.clearColor(0.0,0.0,0.0,0.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE_MINUS_DST_ALPHA, gl.DST_ALPHA);
-/*
-    gl.useProgram(this._fbProgram);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._buffer);
+    if (this._showIds) {
+      gl.useProgram(this._fbProgram);
 
-    gl.vertexAttribPointer(this._fbPositionLocation, 4, gl.FLOAT, gl.FALSE, ENTRY_SIZE, 0);
-    gl.vertexAttribPointer(this._fbMeasureLocation, 4, gl.FLOAT, gl.FALSE, ENTRY_SIZE, 16);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this._buffer);
 
-    gl.enableVertexAttribArray(this._fbPositionLocation);
-    gl.enableVertexAttribArray(this._fbMeasureLocation);
+      gl.vertexAttribPointer(this._fbPositionLocation, 4, gl.FLOAT, gl.FALSE, ENTRY_SIZE, 0);
+      gl.vertexAttribPointer(this._fbMeasureLocation, 4, gl.FLOAT, gl.FALSE, ENTRY_SIZE, 16);
+      gl.vertexAttribPointer(this._fbColorLocation, 4, gl.FLOAT, gl.FALSE, ENTRY_SIZE, 32);
 
-    gl.uniformMatrix4fv(this._fbMapMatrixLocation, false, this._mapMatrix);
-    gl.uniform3f(this._fbTimeLocation, startTime, currentTime, endTime);
+      gl.enableVertexAttribArray(this._fbPositionLocation);
+      gl.enableVertexAttribArray(this._fbMeasureLocation);
+      gl.enableVertexAttribArray(this._fbColorLocation);
 
-    gl.drawArrays(gl.POINTS, 0, this._arrayBuffer.byteLength / ENTRY_SIZE);
-*/
-    gl.useProgram(this._program);
+      gl.uniformMatrix4fv(this._fbMapMatrixLocation, false, this._mapMatrix);
+      gl.uniform3f(this._fbTimeLocation, startTime, currentTime, endTime);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._buffer);
+      gl.drawArrays(gl.POINTS, 0, this._arrayBuffer.byteLength / ENTRY_SIZE);
+    } else {
+      gl.useProgram(this._program);
 
-    gl.vertexAttribPointer(this._positionLocation, 4, gl.FLOAT, gl.FALSE, ENTRY_SIZE, 0);
-    gl.vertexAttribPointer(this._measureLocation, 4, gl.FLOAT, gl.FALSE, ENTRY_SIZE, 16);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this._buffer);
 
-    gl.enableVertexAttribArray(this._positionLocation);
-    gl.enableVertexAttribArray(this._measureLocation);
+      gl.vertexAttribPointer(this._positionLocation, 4, gl.FLOAT, gl.FALSE, ENTRY_SIZE, 0);
+      gl.vertexAttribPointer(this._measureLocation, 4, gl.FLOAT, gl.FALSE, ENTRY_SIZE, 16);
+      //gl.vertexAttribPointer(this._colorLocation, 4, gl.FLOAT, gl.FALSE, ENTRY_SIZE, 32);
 
-    gl.uniformMatrix4fv(this._mapMatrixLocation, false, this._mapMatrix);
-    gl.uniform3f(this._timeLocation, startTime, currentTime, endTime);
+      gl.enableVertexAttribArray(this._positionLocation);
+      gl.enableVertexAttribArray(this._measureLocation);
+      //gl.enableVertexAttribArray(this._colorLocation);
 
-    gl.drawArrays(gl.POINTS, 0, this._arrayBuffer.byteLength / ENTRY_SIZE);
+      gl.uniformMatrix4fv(this._mapMatrixLocation, false, this._mapMatrix);
+      gl.uniform3f(this._timeLocation, startTime, currentTime, endTime);
+
+      gl.drawArrays(gl.POINTS, 0, this._arrayBuffer.byteLength / ENTRY_SIZE);
+    }
   }
 
   _frame(time) {
@@ -667,10 +650,13 @@ export class WebGLOverlay extends google.maps.OverlayView {
   }
 
   getId() {
+    const STEP = 8;
+    function step(x) {
+      return Math.round(x / STEP) * STEP;
+    }
     const [r,g,b,a] = this._pixel;
     if (a > 0) {
-      console.log(r,g,b,a);
-      return r << 16 | g << 8 | Math.floor(b / 16) * 16;
+      return step(r) << 16 | step(g) << 8 | step(b);
     }
     return undefined;
   }

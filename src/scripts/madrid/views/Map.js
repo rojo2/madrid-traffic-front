@@ -5,6 +5,7 @@ import API from "madrid/API";
 import MapStyles from "madrid/views/MapStyles";
 import WebGLOverlay from "madrid/views/WebGLOverlay";
 import mappedLocations from "madrid/data/mappedLocations";
+import {ENTRY_SIZE} from "madrid/constants";
 
 export class Map extends Component {
   constructor(props) {
@@ -27,10 +28,16 @@ export class Map extends Component {
           new google.maps.LatLng(40.33245364116177, -3.8369430001853404),
           new google.maps.LatLng(40.51340889639223, -3.580713428117341),
         );
+
+        // obtenemos el mapa.
         const map = this._map;
+
+        // creamos el overlay.
         const overlay = this._overlay = new WebGLOverlay(bounds, nextProps.buffer);
         overlay.setMap(map);
-        google.maps.event.addListener(map, "mousemove", function(e) {
+
+        // Este evento es llamado cuando movemos el ratón sobre el mapa.
+        google.maps.event.addListener(map, "mousemove", (e) => {
           if (e && e.pixel) {
             overlay.setPosition(e.pixel.x,e.pixel.y);
             if (overlay.isOver) {
@@ -40,14 +47,35 @@ export class Map extends Component {
             }
           }
         });
-        google.maps.event.addListener(map, "click", function(e) {
+
+        // Este evento es llamado cuando se hace click sobre el mapa.
+        // Como utilizamos una técnica de "picking" usando WebGL necesitamos
+        // obtener el identificador a partir del overlay.
+        google.maps.event.addListener(map, "click", (e) => {
           if (e && e.pixel) {
             overlay.setPosition(e.pixel.x,e.pixel.y);
-
             const id = overlay.getId();
-            console.log(id);
-            const mappedLocation = mappedLocations[id];
-            console.log(mappedLocation);
+            if (id && mappedLocations[id]) {
+              const offset = Math.floor(Math.floor(this.props.progress * this.props.buffer.byteLength) / ENTRY_SIZE) * ENTRY_SIZE;
+              const data = this.props.buffer.slice(offset, offset + ENTRY_SIZE);
+              const view = new Float32Array(data);
+              // TODO: Datos.
+              const averageSpeed = 0; //view[4];
+              const occupancy = 0; //view[5];
+              const load = 0; //view[6];
+              const intensity = 0; //view[7];
+              const mappedLocation = mappedLocations[id];
+              const dataMappedLocation = Object.assign({},mappedLocation, {
+                data: {
+                  averageSpeed,
+                  occupancy,
+                  load,
+                  intensity
+                }
+              });
+              console.log(dataMappedLocation);
+              this.props.onDetail(dataMappedLocation);
+            }
           }
         });
       } else {
@@ -58,7 +86,6 @@ export class Map extends Component {
   }
 
   handleGoogleMaps(mapElement) {
-    console.log("hey");
     const mapStyles = MapStyles;
 
     const styledMap = new google.maps.StyledMapType(mapStyles, {name: "Styled Map"});

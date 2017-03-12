@@ -6,21 +6,12 @@ import Map from "madrid/views/Map";
 import Detail from "madrid/views/Detail";
 import Timeline from "madrid/views/Timeline";
 import Loader from "madrid/views/Loader";
-
-/**
- * Duración del progreso.
- */
-const DURATION = 240000;
-
-/**
- * Tiempo en el que termina el timeout y vuelve a comenzar
- * la ejecución del progreso.
- */
-const TIMEOUT = 10000;
+import {DURATION,TIMEOUT,FRAME_RATE} from "madrid/constants";
 
 class Application extends Component {
   constructor(props) {
     super(props);
+
     this.handleDetailOpen = this.handleDetailOpen.bind(this);
     this.handleDetailClose = this.handleDetailClose.bind(this);
 
@@ -32,22 +23,36 @@ class Application extends Component {
     this.handleLoadEnd = this.handleLoadEnd.bind(this);
     this.handleLoadError = this.handleLoadError.bind(this);
 
+    this.handleToggle = this.handleToggle.bind(this);
+
     this._frame = this._frame.bind(this);
     this._frameID = null;
+
+    this._startTime = null;
+    this._currentTime = null;
+    this._previousTime = null;
+    this._cancelTime = 0;
 
     this._timeoutID = null;
 
     this.state = {
+      isRunning: true,
       measurePoint: null,
       progress: 0.0,
       range: "day",
-      autoplay: true,
+      autoplay: false,
       buffer: null
     };
   }
 
-  _frame(t) {
-    this.setState({ progress: (t % DURATION) / DURATION });
+  _frame() {
+    this._currentTime = Date.now();
+    const t = this._currentTime - this._startTime;
+    const delta = (this._currentTime - this._previousTime) / FRAME_RATE;
+    this._previousTime = this._currentTime;
+    this.setState({
+      progress: this.state.progress + (delta / DURATION)
+    });
     this._requestFrame();
   }
 
@@ -55,10 +60,17 @@ class Application extends Component {
     if (this._frameID !== null) {
       window.cancelAnimationFrame(this._frameID);
       this._frameID = null;
+      this._cancelTime = this._currentTime - this._startTime;
+      this._startTime = null;
+      this._currentTime = null;
     }
   }
 
   _requestFrame() {
+    if (this._startTime === null) {
+      this._previousTime = this._currentTime = Date.now();
+      this._startTime = this._currentTime - this._cancelTime;
+    }
     this._frameID = window.requestAnimationFrame(this._frame);
   }
 
@@ -70,7 +82,10 @@ class Application extends Component {
   }
 
   _requestTimeout() {
-    this._timeoutID = setTimeout(() => this._requestFrame(), TIMEOUT);
+    this._timeoutID = setTimeout(() => {
+      this._requestFrame();
+      this._timeoutID = null;
+    }, TIMEOUT);
   }
 
   handleDetailOpen(measurePoint) {
@@ -89,7 +104,10 @@ class Application extends Component {
 
   handleTimelineProgressChange(progress) {
     this._cancelFrame();
-    this.setState({ progress: progress });
+    this.setState({
+      progress: progress,
+      isRunning: false
+    });
   }
 
   handleTimelineRangeChange(range) {
@@ -101,13 +119,21 @@ class Application extends Component {
   }
 
   handleLoadEnd(buffer) {
-    console.log("hola", buffer);
     this.setState({ buffer });
     this._requestFrame();
   }
 
   handleLoadError() {
 
+  }
+
+  handleToggle() {
+    if (this.state.isRunning) {
+      this._cancelFrame();
+    } else {
+      this._requestFrame();
+    }
+    this.setState({ isRunning: !this.state.isRunning });
   }
 
   componentWillUnmount() {
@@ -122,14 +148,15 @@ class Application extends Component {
     const endTime = endDate.getTime();
     const timeSpan = endTime - startTime;
     const progress = this.state.progress;
+    const isRunning = this.state.isRunning;
     const currentDate = new Date((timeSpan * progress) + startTime);
     return (
       <div className="Page">
         <Map buffer={this.state.buffer} startDate={startDate} endDate={endDate} progress={progress} onDetail={this.handleDetailOpen} />
         <div className="Page__UI">
           <Detail onClose={this.handleDetailClose} measurePoint={this.state.measurePoint} />
-          <Loader onStart={this.handleLoadStart} onEnd={this.handleLoadEnd} onError={this.handleLoadError} url={`http://localhost:3000/bin/12-2016.bin`} />
-          <Timeline startDate={startDate} endDate={endDate} currentDate={currentDate} progress={progress} range={this.state.range} onProgressChange={this.handleTimelineProgressChange} onRangeChange={this.handleTimelineRangeChange} onRelease={this.handleTimelineRelease} />
+          <Loader onStart={this.handleLoadStart} onEnd={this.handleLoadEnd} onError={this.handleLoadError} url={`http://localhost:3000/bin/2016-12.bin`} />
+          <Timeline isRunning={isRunning} onToggle={this.handleToggle} startDate={startDate} endDate={endDate} currentDate={currentDate} progress={progress} range={this.state.range} onProgressChange={this.handleTimelineProgressChange} onRangeChange={this.handleTimelineRangeChange} onRelease={this.handleTimelineRelease} />
         </div>
       </div>
     );

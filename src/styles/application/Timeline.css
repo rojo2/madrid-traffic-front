@@ -112,6 +112,34 @@
   background-color: $Color--timelineBorder;
 }
 
+.Timeline__status {
+  position: absolute;
+  top: 1.5rem;
+  right: 3rem;
+}
+
+.Timeline__playPause {
+  background: transparent;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  font-size: 1.25rem;
+  line-height: 0;
+  letter-spacing: 0;
+  justify-content: center;
+  align-items: center;
+  color: $Color--timelineFore;
+  border: 1px solid $Color--timelineBorder;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  outline: 0;
+  transition: all ease-out .2s;
+}
+
+.Timeline__playPause:hover {
+  border: 1px solid $Color--timelineFore;
+}
+
 @keyframes anim--timeline {
   from {
     left: 0;

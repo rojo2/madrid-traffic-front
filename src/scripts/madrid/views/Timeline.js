@@ -158,8 +158,14 @@ export class Timeline extends Component {
     const progress = getTimelineProgress(props.progress, props.range, props.startDate, props.endDate);
     const styles = { left: `${progress * 100}%` };
     const date = props.currentDate;
+    const icon = (props.isRunning) ? "⏸" : "⏵"
     return (
       <div className="Timeline">
+        <div className="Timeline__status">
+          <button className="Timeline__playPause" onClick={props.onToggle}>
+            {icon}
+          </button>
+        </div>
         <nav className="Timeline__range">
           <a className={getTimelineRangeOptionClasses(props.range, "day")} onClick={(e) => { e.preventDefault(); props.onRangeChange("day"); }} href="#">Día</a>
           <a className={getTimelineRangeOptionClasses(props.range, "week")} onClick={(e) => { e.preventDefault(); props.onRangeChange("week"); }} href="#">Semana</a>
