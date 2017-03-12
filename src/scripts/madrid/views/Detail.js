@@ -3,6 +3,7 @@ import Component from "inferno-component";
 import classNames from "classnames";
 import worker from "madrid/utils/Worker";
 import {fromDateToFloat,fromFloatToDate} from "madrid/utils/FloatDate";
+import moment from "moment";
 
 export class Detail extends Component {
   constructor(props) {
@@ -12,10 +13,11 @@ export class Detail extends Component {
     this.handleGraph = this.handleGraph.bind(this);
     this.handleClose = this.handleClose.bind(this);
     this.handleMessage = this.handleMessage.bind(this);
-
-    this._startDate = new Date(2016,11,1,0,0,0);
-    this._endDate = new Date(2016,11,31,23,59,59);
-    this._currentDate = new Date(2016,11,1,0,0,0);
+    this.state = {
+      data: {},
+      time: 0,
+      date: new Date()
+    };
   }
 
   handleGoogleStreetView(streetViewElement) {
@@ -50,13 +52,28 @@ export class Detail extends Component {
         });
       }
     } else if (nextProps.progress !== this.props.progress) {
-      const startTime = fromDateToFloat(this.props.startDate);
-      const endTime = fromDateToFloat(this.props.endDate);
-      const currentTime = ((endTime - startTime) * nextProps.progress) + startTime;
-      worker.postMessage({
-        type: "time",
-        time: currentTime
-      });
+      if (nextProps.isRunning) {
+        const startTime = fromDateToFloat(this.props.startDate);
+        const endTime = fromDateToFloat(this.props.endDate);
+        const currentTime = ((endTime - startTime) * nextProps.progress) + startTime;
+        worker.postMessage({
+          type: "time",
+          startTime: startTime,
+          endTime: endTime,
+          currentTime: currentTime
+        });
+      } else {
+        const startTime = fromDateToFloat(this.props.startDate);
+        const endTime = fromDateToFloat(this.props.endDate);
+        const currentTime = ((endTime - startTime) * nextProps.progress) + startTime;
+        worker.postMessage({
+          type: "progress",
+          progress: nextProps.progress,
+          startTime: startTime,
+          endTime: endTime,
+          currentTime: currentTime
+        });
+      }
     } else if (nextProps.buffer !== this.props.buffer) {
       worker.postMessage({
         type: "buffer",
@@ -78,10 +95,13 @@ export class Detail extends Component {
   }
 
   handleMessage(e) {
-    console.log(e);
-    const {type,data} = e.data;
+    const {type,data,time} = e.data;
     if (type === "item") {
-      this.setState({ data });
+      fromFloatToDate(this.state.date, time);
+      this.setState({
+        data,
+        time
+      });
     }
   }
 
@@ -98,7 +118,7 @@ export class Detail extends Component {
 
   getField(field) {
     const data = (this.state.data);
-    if (data) {
+    if (data && data[field]) {
       return data[field];
     }
     return "-";
@@ -117,7 +137,7 @@ export class Detail extends Component {
   }
 
   getAverageVelocity() {
-    return this.getField("average");
+    return this.getField("averageSpeed");
   }
 
   render() {
@@ -158,10 +178,13 @@ export class Detail extends Component {
             <label className="Detail__dataFieldLabel">Velocidad media</label>
             <div className="Detail__dataFieldValue">{this.getAverageVelocity()}</div>
           </div>
+          <div className="Detail__fullDataField">
+            <label className="Detail__dataFieldLabel">Última medición</label>
+            <div className="Detail__dataFieldValue">{moment(this.state.date).format("LLLL")}</div>
+          </div>
         </section>
         <section className="Detail__section">
           <div className="Detail__graph">
-            <canvas className="Detail__graphContainer" ref={this.handleGraph}></canvas>
           </div>
         </section>
         <section className="Detail__footer">

@@ -33,3 +33,7 @@ export const MIN_SIZE = 16;
  * Rango de tiempo para los puntos.
  */
 export const MIN_TIME = 480;
+
+export const START_DATE = new Date(2016,11,1,19,30,0);
+
+export const END_DATE = new Date(2016,11,31,0,0,0);

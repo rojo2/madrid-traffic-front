@@ -5,11 +5,15 @@ import Map from "madrid/views/Map";
 import Detail from "madrid/views/Detail";
 import Timeline from "madrid/views/Timeline";
 import Loader from "madrid/views/Loader";
-import {DURATION,TIMEOUT,FRAME_RATE} from "madrid/constants";
+import {START_DATE,END_DATE,DURATION,TIMEOUT,FRAME_RATE} from "madrid/constants";
+import moment from "moment";
+import locale from "moment/locale/es";
 
 class Application extends Component {
   constructor(props) {
     super(props);
+
+    moment.updateLocale("es", locale);
 
     this.handleDetailOpen = this.handleDetailOpen.bind(this);
     this.handleDetailClose = this.handleDetailClose.bind(this);
@@ -140,9 +144,8 @@ class Application extends Component {
   }
 
   render() {
-    // TODO: Buscar una manera de determinar la fecha.
-    const startDate = new Date(2016,6,1,19,30,0);
-    const endDate = new Date(2016,6,31,0,0,0);
+    const startDate = START_DATE;
+    const endDate = END_DATE;
     const startTime = startDate.getTime();
     const endTime = endDate.getTime();
     const timeSpan = endTime - startTime;
@@ -151,9 +154,9 @@ class Application extends Component {
     const currentDate = new Date((timeSpan * progress) + startTime);
     return (
       <div className="Page">
-        <Map buffer={this.state.buffer} startDate={startDate} endDate={endDate} progress={progress} onDetail={this.handleDetailOpen} />
+        <Map buffer={this.state.buffer} startDate={startDate} endDate={endDate} currentDate={currentDate} progress={progress} onDetail={this.handleDetailOpen} />
         <div className="Page__UI">
-          <Detail buffer={this.state.buffer} startDate={startDate} endDate={endDate} progress={progress} onClose={this.handleDetailClose} measurePoint={this.state.measurePoint} />
+          <Detail isRunning={isRunning} buffer={this.state.buffer} startDate={startDate} endDate={endDate} progress={progress} onClose={this.handleDetailClose} measurePoint={this.state.measurePoint} />
           <Loader onStart={this.handleLoadStart} onEnd={this.handleLoadEnd} onError={this.handleLoadError} url={`http://localhost:3000/bin/2016-12.bin`} />
           <Timeline isRunning={isRunning} startDate={startDate} endDate={endDate} currentDate={currentDate} progress={progress} range={this.state.range} onProgressChange={this.handleTimelineProgressChange} onRangeChange={this.handleTimelineRangeChange} onRelease={this.handleTimelineRelease} onToggle={this.handleToggle} />
         </div>

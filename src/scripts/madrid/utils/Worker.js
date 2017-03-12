@@ -6,10 +6,12 @@ function createWorkerFromSource(source) {
   return new Worker(url);
 }
 
-export const worker = createWorkerFromSource(`
+const source = `
   var buffer;
   var id;
-  var time;
+  var startTime;
+  var currentTime;
+  var endTime;
   var offset = 0;
   var sentOffset = 0;
   var view;
@@ -22,18 +24,27 @@ export const worker = createWorkerFromSource(`
         view = new DataView(buffer);
       }
     } else if (e.data.type === "time" && buffer) {
-      time = e.data.time;
+      currentTime = e.data.currentTime;
+      startTime = e.data.startTime;
+      endTime = e.data.endTime;
     } else if (e.data.type === "id" && buffer) {
       id = e.data.id;
       if (timeoutID !== null) {
         cancel();
       }
       request();
+    } else if (e.data.type === "progress" && buffer) {
+      currentTime = e.data.currentTime;
+      startTime = e.data.startTime;
+      endTime = e.data.endTime;
+      offset = Math.max(
+        0,
+        Math.floor(Math.floor((e.data.progress - 0.25) * view.byteLength) / ${ENTRY_SIZE}) * ${ENTRY_SIZE}
+      );
     }
   });
 
   function cancel() {
-    postMessage("debug! cancel");
     clearTimeout(timeoutID);
   }
 
@@ -44,32 +55,41 @@ export const worker = createWorkerFromSource(`
   function frame() {
     if (view && id) {
       for (; offset < view.byteLength; offset += ${ENTRY_SIZE}) {
-        var currentTime = view.getFloat32(offset + 8, true);
-        var currentId = view.getUint32(offset + 12, true);
-        if (currentId === id && Math.abs(currentTime - time) < ${MIN_TIME} && offset !== sentOffset) {
-          sentOffset = offset;
-          postMessage({
-            type: "item",
-            offset: offset,
-            data: {
-              averageSpeed: view.getFloat32(offset + 16, true),
-              occupancy: view.getFloat32(offset + 20, true),
-              load: view.getFloat32(offset + 24, true),
-              intensity: view.getFloat32(offset + 28, true)
-            }
-          });
+        var itemTime = view.getFloat32(offset + 8, true);
+        var itemId = view.getUint32(offset + 12, true);
+        if (itemId === id && Math.abs(itemTime - currentTime) < ${MIN_TIME}) {
+          if (sentOffset !== offset) {
+            sentOffset = offset;
+            postMessage({
+              type: "item",
+              time: itemTime,
+              offset: offset,
+              data: {
+                averageSpeed: view.getFloat32(offset + 16, true),
+                occupancy: view.getFloat32(offset + 20, true),
+                load: view.getFloat32(offset + 24, true),
+                intensity: view.getFloat32(offset + 28, true)
+              }
+            });
+          }
           break;
         }
       }
 
-      if (offset === buffer.length) {
+      if (offset === view.byteLength) {
         offset = 0;
       }
+
       request();
+
     } else {
+
       cancel();
+
     }
   }
-`);
+`;
+
+export const worker = createWorkerFromSource(source);
 
 export default worker;

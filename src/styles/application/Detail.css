@@ -84,6 +84,11 @@
   padding: 1rem;
 }
 
+.Detail__fullDataField {
+  flex: 0 0 100%;
+  padding: 1rem;
+}
+
 .Detail__dataFieldLabel {
   font-size: 0.75rem;
 }

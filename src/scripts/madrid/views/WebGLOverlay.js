@@ -11,8 +11,10 @@ export class WebGLOverlay extends google.maps.OverlayView {
    *
    * @param {google.maps.LatLngBounds} bounds
    * @param {ArrayBuffer} arrayBuffer
+   * @param {Date} startDate
+   * @param {Date} endDate
    */
-  constructor(bounds, arrayBuffer) {
+  constructor(bounds, arrayBuffer, startDate, endDate) {
     super();
 
     // map data.
@@ -58,8 +60,8 @@ export class WebGLOverlay extends google.maps.OverlayView {
     this._renderBuffer = null;
     this._frameBuffer = null;
 
-    this._startDate = new Date(2016,11,1,0,0,0);
-    this._endDate = new Date(2016,11,31,23,59,59);
+    this._startDate = startDate;
+    this._endDate = endDate;
     this._currentDate = new Date(2016,11,1,0,0,0);
 
     this._pixel = new Uint8Array(4);

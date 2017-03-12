@@ -1,6 +1,7 @@
 import Inferno from "inferno";
 import Component from "inferno-component";
 import classNames from "classnames";
+import moment from "moment";
 
 import leftPad from "madrid/utils/leftPad";
 
@@ -185,7 +186,7 @@ export class Timeline extends Component {
           </div>
         </div>
         <div className="Timeline__date">
-          {date.toString()}
+          {moment(date).format("LLLL")}
         </div>
       </div>
     );

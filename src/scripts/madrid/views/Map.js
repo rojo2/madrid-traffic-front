@@ -32,7 +32,12 @@ export class Map extends Component {
         const map = this._map;
 
         // creamos el overlay.
-        const overlay = this._overlay = new WebGLOverlay(bounds, nextProps.buffer);
+        const overlay = this._overlay = new WebGLOverlay(
+          bounds,
+          nextProps.buffer,
+          nextProps.startDate,
+          nextProps.endDate
+        );
         overlay.setMap(map);
 
         // Este evento es llamado cuando movemos el ratón sobre el mapa.
@@ -72,7 +77,6 @@ export class Map extends Component {
                   intensity
                 }
               });
-              console.log(dataMappedLocation);
               this.props.onDetail(dataMappedLocation);
             }
           }
