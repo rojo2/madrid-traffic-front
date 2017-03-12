@@ -1,6 +1,6 @@
 import {fromDateToFloat,fromFloatToDate} from "madrid/utils/FloatDate";
 import WebGL from "madrid/utils/WebGL";
-import {ENTRY_SIZE} from "madrid/constants";
+import {MAX_SIZE,MIN_SIZE,MIN_TIME,ENTRY_SIZE} from "madrid/constants";
 
 /**
  * Esta es la capa encargada de renderizar los puntos usando WebGL.
@@ -169,10 +169,6 @@ export class WebGLOverlay extends google.maps.OverlayView {
   }
 
   _createShaders() {
-
-    const MAX_SIZE = 64;
-    const MIN_SIZE = 16;
-    const MIN_TIME = 480;
 
     this._vertexShaderColor = this._createVertexShader(`
       precision highp float;

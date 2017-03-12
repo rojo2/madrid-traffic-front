@@ -18,3 +18,18 @@ export const DURATION = 20000;
  * la ejecución del progreso.
  */
 export const TIMEOUT = 5000;
+
+/**
+ * Tamaño máximo de un punto.
+ */
+export const MAX_SIZE = 64;
+
+/**
+ * Tamaño mínimo de un punto.
+ */
+export const MIN_SIZE = 16;
+
+/**
+ * Rango de tiempo para los puntos.
+ */
+export const MIN_TIME = 480;

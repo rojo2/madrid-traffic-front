@@ -153,9 +153,9 @@ class Application extends Component {
       <div className="Page">
         <Map buffer={this.state.buffer} startDate={startDate} endDate={endDate} progress={progress} onDetail={this.handleDetailOpen} />
         <div className="Page__UI">
-          <Detail onClose={this.handleDetailClose} measurePoint={this.state.measurePoint} />
+          <Detail buffer={this.state.buffer} startDate={startDate} endDate={endDate} progress={progress} onClose={this.handleDetailClose} measurePoint={this.state.measurePoint} />
           <Loader onStart={this.handleLoadStart} onEnd={this.handleLoadEnd} onError={this.handleLoadError} url={`http://localhost:3000/bin/2016-12.bin`} />
-          <Timeline isRunning={isRunning} onToggle={this.handleToggle} startDate={startDate} endDate={endDate} currentDate={currentDate} progress={progress} range={this.state.range} onProgressChange={this.handleTimelineProgressChange} onRangeChange={this.handleTimelineRangeChange} onRelease={this.handleTimelineRelease} />
+          <Timeline isRunning={isRunning} startDate={startDate} endDate={endDate} currentDate={currentDate} progress={progress} range={this.state.range} onProgressChange={this.handleTimelineProgressChange} onRangeChange={this.handleTimelineRangeChange} onRelease={this.handleTimelineRelease} onToggle={this.handleToggle} />
         </div>
       </div>
     );
