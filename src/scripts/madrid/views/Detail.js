@@ -1,7 +1,6 @@
 import Inferno from "inferno";
 import Component from "inferno-component";
 import classNames from "classnames";
-import API from "madrid/API";
 
 export class Detail extends Component {
   constructor(props) {
@@ -38,16 +37,6 @@ export class Detail extends Component {
         const [lat,lng] = measurePoint.location.coordinates;
         this.view.setPosition(new google.maps.LatLng(lat,lng));
         this.view.setVisible(true);
-
-        //console.log(measurePoint);
-        API.measurePoint.findById(measurePoint.id).then((mp) => {
-          this.setState({
-            data: mp
-          });
-          //console.log(mp);
-        }).catch((err) => {
-          console.error(err);
-        });
       }
     }
   }

@@ -352,7 +352,7 @@ export class WebGLOverlay extends google.maps.OverlayView {
         if (p > 0.5) {
           discard;
         }
-        vec3 color = getColor(1.0 - (max(0.0,v_measure.y) / 100.0));
+        vec3 color = getColor(1.0 - (max(0.0,v_measure.w) / 100.0));
         gl_FragColor = vec4(color,1.0);
       }
     `);

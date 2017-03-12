@@ -1,7 +1,6 @@
 import Inferno from "inferno";
 import Component from "inferno-component";
 import classNames from "classnames";
-import API from "madrid/API";
 import MapStyles from "madrid/views/MapStyles";
 import WebGLOverlay from "madrid/views/WebGLOverlay";
 import mappedLocations from "madrid/data/mappedLocations";

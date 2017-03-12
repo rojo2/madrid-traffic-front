@@ -1,7 +1,6 @@
 import Inferno from "inferno";
 import Component from "inferno-component";
 import classNames from "classnames";
-import API from "madrid/API";
 import Map from "madrid/views/Map";
 import Detail from "madrid/views/Detail";
 import Timeline from "madrid/views/Timeline";
