@@ -26,8 +26,13 @@ function createBundler() {
   const bundler = browserify({
       debug: !isProduction(),
       paths: ["src/scripts"]
-    })
-    .plugin(watchify)
+    });
+
+  if (!isProduction()) {
+    bundler.plugin(watchify);
+  }
+
+  bundler
     .plugin(inferno)
     .transform(babelify, {
       presets: ["latest"]
