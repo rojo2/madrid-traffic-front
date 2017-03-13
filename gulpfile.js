@@ -4,6 +4,7 @@ const browserify = require("browserify");
 const babelify = require("babelify");
 const watchify = require("watchify");
 const exorcist = require("exorcist");
+const uglifyify = require("uglifyify");
 const source = require("vinyl-source-stream");
 const inferno = require("babel-plugin-inferno");
 const bs = require("browser-sync");
@@ -19,6 +20,10 @@ function isProduction() {
   return process.env.NODE_ENV === "production";
 }
 
+function isHeroku() {
+  return process.env.NODE_ENV === "heroku";
+}
+
 /**
  * Crea el bundler  (browserify + watchify).
  */
@@ -28,7 +33,7 @@ function createBundler() {
       paths: ["src/scripts"]
     });
 
-  if (!isProduction()) {
+  if (!isProduction() && !isHeroku()) {
     bundler.plugin(watchify);
   }
 
@@ -36,9 +41,19 @@ function createBundler() {
     .plugin(inferno)
     .transform(babelify, {
       presets: ["latest"]
-    })
-    .add("src/scripts/madrid/index.js");
+    });
+
+  if (isProduction() || isHeroku()) {
+    bundler.transform(uglifyify, {
+      global: true,
+      mangle: true,
+      compress: true
+    });
+  }
+
+  bundler.add("src/scripts/madrid/index.js");
   bundler.on("update", bundle);
+  bundler.on("log", plugins.util.log);
   return bundler;
 }
 
