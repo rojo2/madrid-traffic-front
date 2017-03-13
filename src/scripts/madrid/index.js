@@ -5,7 +5,7 @@ import Map from "madrid/views/Map";
 import Detail from "madrid/views/Detail";
 import Timeline from "madrid/views/Timeline";
 import Loader from "madrid/views/Loader";
-import {START_DATE,END_DATE,DURATION,TIMEOUT,FRAME_RATE} from "madrid/constants";
+import {URL,START_DATE,END_DATE,DURATION,TIMEOUT,FRAME_RATE} from "madrid/constants";
 import moment from "moment";
 import locale from "moment/locale/es";
 
@@ -53,8 +53,12 @@ class Application extends Component {
     const t = this._currentTime - this._startTime;
     const delta = (this._currentTime - this._previousTime) / FRAME_RATE;
     this._previousTime = this._currentTime;
+    let newProgress = this.state.progress + (delta / DURATION);
+    if (newProgress > 1.0) {
+      newProgress -= 1.0;
+    }
     this.setState({
-      progress: this.state.progress + (delta / DURATION)
+      progress: newProgress
     });
     this._requestFrame();
   }
@@ -157,7 +161,7 @@ class Application extends Component {
         <Map buffer={this.state.buffer} startDate={startDate} endDate={endDate} currentDate={currentDate} progress={progress} onDetail={this.handleDetailOpen} />
         <div className="Page__UI">
           <Detail isRunning={isRunning} buffer={this.state.buffer} startDate={startDate} endDate={endDate} progress={progress} onClose={this.handleDetailClose} measurePoint={this.state.measurePoint} />
-          <Loader onStart={this.handleLoadStart} onEnd={this.handleLoadEnd} onError={this.handleLoadError} url={`http://localhost:3000/bin/2016-12.bin`} />
+          <Loader onStart={this.handleLoadStart} onEnd={this.handleLoadEnd} onError={this.handleLoadError} url={URL} />
           <Timeline isRunning={isRunning} startDate={startDate} endDate={endDate} currentDate={currentDate} progress={progress} range={this.state.range} onProgressChange={this.handleTimelineProgressChange} onRangeChange={this.handleTimelineRangeChange} onRelease={this.handleTimelineRelease} onToggle={this.handleToggle} />
         </div>
       </div>
